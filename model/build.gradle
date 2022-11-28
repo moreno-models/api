@@ -15,14 +15,19 @@ plugins {
     id 'org.openapi.generator' version '5.1.1'
 }
 
+group = 'net.stepniak.morenomodels'
+version = 1.0
+
 openApiGenerate {
     generatorName.set("kotlin")
-    // lib/src/main/resources/moreno-models.yaml
-    inputSpec.set("$rootDir/lib/src/main/resources/moreno-models.yaml")
+    inputSpec.set("$projectDir/src/main/resources/moreno-models.yaml")
     outputDir.set("$buildDir/generated")
+    packageName.set("net.stepniak.morenomodels.api")
+    apiPackage.set("net.stepniak.morenomodels.api")
+    modelPackage.set("net.stepniak.morenomodels.api.model")
 }
 
-java.sourceSets["main"].java.srcDir("$buildDir/generated/src/main/java")
+java.sourceSets["main"].java.srcDir("$buildDir/generated/src/main/kotlin")
 
 repositories {
     // Use Maven Central for resolving dependencies.
@@ -41,6 +46,14 @@ dependencies {
 
     // This dependency is used internally, and not exposed to consumers on their own compile classpath.
     implementation 'com.google.guava:guava:31.1-jre'
+
+    implementation(platform("com.squareup.okhttp3:okhttp-bom:4.10.0"))
+    implementation("com.squareup.moshi:moshi:1.14.0")
+    implementation("com.squareup.moshi:moshi-kotlin:1.12.0")
+
+    // define any required OkHttp artifacts without version
+    implementation("com.squareup.okhttp3:okhttp")
+    implementation("com.squareup.okhttp3:logging-interceptor")
 }
 
 tasks.named('test') {
