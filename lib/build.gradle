@@ -16,12 +16,13 @@ plugins {
 }
 
 openApiGenerate {
-    generatorName.set("spring")
-    inputSpec.set("src/main/resources/petstore.yml")
+    generatorName.set("kotlin")
+    // lib/src/main/resources/moreno-models.yaml
+    inputSpec.set("$rootDir/lib/src/main/resources/moreno-models.yaml")
     outputDir.set("$buildDir/generated")
-    configFile.set("src/main/resources/api-config.json")
 }
 
+java.sourceSets["main"].java.srcDir("$buildDir/generated/src/main/java")
 
 repositories {
     // Use Maven Central for resolving dependencies.
