@@ -196,7 +196,7 @@ paths:
         in: path
         required: true
         schema:
-          $ref: '#/components/schemas/ModelSlug'
+          $ref: '#/components/schemas/Slug'
       - name: nextToken
         description: Pagination token to get the next page. It's received in the response when there are more pages.
         in: query
