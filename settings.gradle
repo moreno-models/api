@@ -10,3 +10,4 @@
 rootProject.name = 'moreno-models-api'
 include('model')
 include('spring-api')
+include('serverless-api')
