@@ -7,6 +7,7 @@ info:
 paths:
   /photos:
     get:
+      operationId: listPhotos
       summary: List all photos
       parameters:
         - name: nextToken
@@ -43,6 +44,7 @@ paths:
         schema:
           $ref: '#/components/schemas/Slug'
     put:
+      operationId: uploadPhoto
       summary: Upload/replace a photo's contents and place in the durable storage
       requestBody:
         required: true
@@ -78,6 +80,7 @@ paths:
                 $ref: '#/components/schemas/Error'
   /models:
     get:
+      operationId: listModels
       summary: List models
       parameters:
       - name: nextToken
@@ -106,6 +109,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
     post:
+      operationId: createModel
       summary: Create a new model
       requestBody:
         description: Create a new model
@@ -136,6 +140,7 @@ paths:
         schema:
           $ref: '#/components/schemas/Slug'
     get:
+      operationId: getModel
       summary: Get a model's personal details
       responses:
         200:
@@ -157,6 +162,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
     put:
+      operationId: updateModel
       summary: Update a model's personal details
       requestBody:
         required: true
@@ -210,6 +216,7 @@ paths:
         schema:
           $ref: '#/components/schemas/PageSize'
     post:
+      operationId: createModelPhoto
       summary: Creates a new model photo and returns the URL where to upload it
       requestBody:
         description: Create a new model's photo.
@@ -232,6 +239,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'  
     get:
+      operationId: listModelPhotos
       summary: List a model's photos
       responses:
         200:
