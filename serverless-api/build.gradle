@@ -6,11 +6,10 @@ plugins {
   id 'com.github.johnrengelman.shadow' version '6.0.0'
 }
 
-group = 'com.serverless'
-version = 'dev'
+group = 'net.stepniak.morenomodels.serviceserverless'
+version = '0.0.1-SNAPSHOT'
 
-description = """hello"""
-
+description = """morenomodels-serverless"""
 
 sourceCompatibility = 11
 targetCompatibility = 11
@@ -33,19 +32,15 @@ repositories {
 
 dependencies {
   api (
-      'org.jetbrains.kotlin:kotlin-stdlib:1.3.72',
+      'org.jetbrains.kotlin:kotlin-stdlib:1.3.71',
       'com.amazonaws:aws-lambda-java-core:1.2.1',
       'com.amazonaws:aws-lambda-java-log4j2:1.5.1',
       'org.apache.logging.log4j:log4j-api:2.17.1',
       'org.apache.logging.log4j:log4j-core:2.17.1',
-      'com.fasterxml.jackson.core:jackson-core:2.11.0',
-      'com.fasterxml.jackson.core:jackson-databind:2.11.0',
-      'com.fasterxml.jackson.core:jackson-annotations:2.11.0'
+      'com.fasterxml.jackson.core:jackson-core:2.14.0',
+      'com.fasterxml.jackson.core:jackson-databind:2.14.0',
+      'com.fasterxml.jackson.core:jackson-annotations:2.14.0'
   )
-}
-
-task deploy(type: Exec, dependsOn: 'shadowJar') {
-  commandLine 'serverless', 'deploy'
 }
 
 shadowJar{
