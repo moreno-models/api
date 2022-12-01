@@ -2,9 +2,10 @@ package net.stepniak.morenomodels.serviceserverless
 
 import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.lambda.runtime.RequestHandler
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.logging.log4j.LogManager
 
-public class Handler : RequestHandler<Map<String, Any>, ApiGatewayResponse> {
+class Handler : RequestHandler<Map<String, Any>, ApiGatewayResponse> {
     override fun handleRequest(input: Map<String, Any>, context: Context): ApiGatewayResponse {
         LOG.info("received: " + input.keys.toString())
 
