@@ -35,10 +35,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        x-amazon-apigateway-integration:
-          uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:MorenoModelsHandler/invocations'
-          httpMethod: "GET"
-          type: "aws_proxy"
+      x-amazon-apigateway-integration:
+        uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:MorenoModelsHandler/invocations'
+        httpMethod: "GET"
+        type: "aws_proxy"
   /photos/{photoSlug}/upload:
     parameters:
       - name: photoSlug
