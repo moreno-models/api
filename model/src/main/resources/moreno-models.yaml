@@ -37,7 +37,7 @@ paths:
                 $ref: '#/components/schemas/Error'
       x-amazon-apigateway-integration:
         uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:MorenoModelsHandler/invocations'
-        httpMethod: "GET"
+        httpMethod: "POST"
         type: "aws_proxy"
   /photos/{photoSlug}/upload:
     parameters:
@@ -84,7 +84,7 @@ paths:
                 $ref: '#/components/schemas/Error'
       x-amazon-apigateway-integration:
         uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:MorenoModelsHandler/invocations'
-        httpMethod: "PUT"
+        httpMethod: "POST"
         type: "aws_proxy"
   /models:
     get:
@@ -118,7 +118,7 @@ paths:
                 $ref: '#/components/schemas/Error'
       x-amazon-apigateway-integration:
         uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:MorenoModelsHandler/invocations'
-        httpMethod: "GET"
+        httpMethod: "POST"
         type: "aws_proxy"
     post:
       operationId: createModel
@@ -179,7 +179,7 @@ paths:
                 $ref: '#/components/schemas/Error'
       x-amazon-apigateway-integration:
         uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:MorenoModelsHandler/invocations'
-        httpMethod: "GET"
+        httpMethod: "POST"
         type: "aws_proxy"
     put:
       operationId: updateModel
@@ -217,7 +217,7 @@ paths:
                 $ref: '#/components/schemas/Error'
       x-amazon-apigateway-integration:
         uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:MorenoModelsHandler/invocations'
-        httpMethod: "PUT"
+        httpMethod: "POST"
         type: "aws_proxy"
   /models/{modelSlug}/photos:
     parameters:
@@ -290,7 +290,7 @@ paths:
                 $ref: '#/components/schemas/Error'
       x-amazon-apigateway-integration:
         uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:MorenoModelsHandler/invocations'
-        httpMethod: "GET"
+        httpMethod: "POST"
         type: "aws_proxy"
 components:
   schemas:

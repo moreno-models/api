@@ -16,14 +16,15 @@ export class ServiceStack extends cdk.Stack {
       memorySize: 512,
     });
 
-    new apigw.SpecRestApi(this, 'MorenoAPISpecification', {
+    const api = new apigw.SpecRestApi(this, 'MorenoAPISpecification', {
       restApiName: 'MorenoModels',
       apiDefinition: new apigw.AssetApiDefinition('../../model/src/main/resources/moreno-models.yaml'),
     });
 
     // Allow the Lambda to be called by any Rest API
     lambdaService.addPermission('APIGWPermission', {
-      principal: new iam.ServicePrincipal('apigateway.amazonaws.com')
+      principal: new iam.ServicePrincipal('apigateway.amazonaws.com'),
+      sourceArn: `${api.arnForExecuteApi('*', '/*', '*')}`
     })
   }
 }
