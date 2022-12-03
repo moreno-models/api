@@ -3,6 +3,7 @@
  */
 package net.stepniak.morenmodels.api
 
+import net.stepniak.morenomodels.api.infrastructure.ClientException
 import net.stepniak.morenomodels.api.model.CreatedPhoto
 import net.stepniak.morenomodels.api.model.NewPhoto
 import net.stepniak.morenomodels.api.model.Photo
@@ -14,6 +15,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.junit.jupiter.api.assertThrows
 import java.util.*
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -44,6 +46,52 @@ class PhotosIntegrationTest : BaseIntegrationTest() {
 
         // cleanup
         api.archivePhoto(createdPhoto.photoSlug, delete = true)
+    }
+
+    @Test
+    fun `validates create photo parameters`() {
+        // given, when
+        val ex = assertThrows<ClientException> {
+            api.createPhoto(NewPhoto(INVALID_SLUG))
+        }
+        // then
+        assertEquals(400, ex.statusCode)
+    }
+
+    @Test
+    fun `validates list photos parameters`() {
+        // given, when
+        val ex = assertThrows<ClientException> {
+            api.listPhotos(
+                nextToken = "3".repeat(513),
+                pageSize = 1001,
+                modelSlug = INVALID_SLUG,
+                showArchived = null
+            )
+        }
+        // then
+        assertEquals(400, ex.statusCode)
+    }
+
+    @Test
+    fun `validates get photo parameters`() {
+        // given, when, then
+        val ex = assertThrows<ClientException> {
+            api.getPhoto(
+                photoSlug = INVALID_SLUG
+            )
+        }
+        // then
+        assertEquals(400, ex.statusCode)
+    }
+
+    @Test
+    fun `validates archive photo parameters`() {
+        val ex = assertThrows<ClientException> {
+            api.archivePhoto(photoSlug = INVALID_SLUG, delete = false)
+        }
+        // then
+        assertEquals(400, ex.statusCode)
     }
 
     @Test
@@ -141,9 +189,11 @@ class PhotosIntegrationTest : BaseIntegrationTest() {
     }
 
     private fun createAndUploadPhoto(small: Boolean = true): CreatedPhoto {
-        val createdPhoto = api.createPhoto(NewPhoto(
-            photoSlug = "test-photo-${UUID.randomUUID()}"
-        ))
+        val createdPhoto = api.createPhoto(
+            NewPhoto(
+                photoSlug = "test-photo-${UUID.randomUUID()}"
+            )
+        )
 
         uploadPhotoFromDisk(createdPhoto, small)
         return createdPhoto
@@ -177,5 +227,9 @@ class PhotosIntegrationTest : BaseIntegrationTest() {
         ).execute();
 
         return response.body!!.bytes().size
+    }
+
+    companion object {
+        private const val INVALID_SLUG = "#4_(*!@#*/"
     }
 }

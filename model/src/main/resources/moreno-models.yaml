@@ -422,8 +422,6 @@ components:
           $ref: '#/components/schemas/PaginationToken'
     Error:
       type: object
-      required:
-        - message
       properties:
         message:
           description: A human readable error message.
