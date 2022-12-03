@@ -22,6 +22,18 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/PageSize'
+        - name: showArchived
+          description: Whether to show archived photos.
+          in: query
+          required: false
+          schema:
+            type: boolean
+        - name: modelSlug
+          description: Filter by a model.
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Slug'
       responses:
         200:
           description: A list of photos.
@@ -39,6 +51,75 @@ paths:
         uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:MorenoModelsHandler/invocations'
         httpMethod: "POST"
         type: "aws_proxy"
+    post:
+      operationId: createPhoto
+      summary: Creates a photo disassociated with any entity and returns upload URL.
+      requestBody:
+        description: Create a new photo.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewPhoto'
+      responses:
+        200:
+          description: A created photo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatedPhoto'
+        500:
+          description: Unexpected error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-amazon-apigateway-integration:
+        uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:MorenoModelsHandler/invocations'
+        httpMethod: "POST"
+        type: "aws_proxy"
+  /photos/{photoSlug}:
+    parameters:
+      - name: photoSlug
+        description: Human readable unique identifier of a model.
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Slug'
+    get:
+      operationId: getPhoto
+      summary: Gets a single photo details
+      responses:
+        200:
+          description: Get a photo details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Photo'
+        500:
+          description: Unexpected error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      operationId: archivePhoto
+      summary: Marks photo as archived or completely deletes it from the application
+      parameters:
+        - name: delete
+          description: If set to true, deletes photo from the database and the underlying storage.
+          in: query
+          schema:
+            type: boolean
+      responses:
+        201:
+          description: Confirmation that the photo was properly archived.
+        500:
+          description: Unexpected error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /photos/{photoSlug}/upload:
     parameters:
       - name: photoSlug
@@ -54,6 +135,10 @@ paths:
         required: true
         content:
           image/png:
+            schema:
+              type: string
+              format: binary
+          image/jpg:
             schema:
               type: string
               format: binary
@@ -219,79 +304,6 @@ paths:
         uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:MorenoModelsHandler/invocations'
         httpMethod: "POST"
         type: "aws_proxy"
-  /models/{modelSlug}/photos:
-    parameters:
-      - name: modelSlug
-        description: Unique model identifier.
-        in: path
-        required: true
-        schema:
-          $ref: '#/components/schemas/Slug'
-      - name: nextToken
-        description: Pagination token to get the next page. It's received in the response when there are more pages.
-        in: query
-        required: false
-        schema:
-          $ref: '#/components/schemas/PaginationToken'
-      - name: pageSize
-        description: Number of photos to return on each call.
-        in: query
-        required: false
-        schema:
-          $ref: '#/components/schemas/PageSize'
-    post:
-      operationId: createModelPhoto
-      summary: Creates a new model photo and returns the URL where to upload it
-      requestBody:
-        description: Create a new model's photo.
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Photo'
-      responses:
-        200:
-          description: A photo with an target URL where to upload.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/NewPhoto'
-        500:
-          description: Unexpected error.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-      x-amazon-apigateway-integration:
-        uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:MorenoModelsHandler/invocations'
-        httpMethod: "POST"
-        type: "aws_proxy"
-    get:
-      operationId: listModelPhotos
-      summary: List a model's photos
-      responses:
-        200:
-          description: List a model's photos.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ModelPhotos'
-        404:
-          description: No photos found for the provided `modelSlug`.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        500:
-          description: Unexpected error.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-      x-amazon-apigateway-integration:
-        uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:MorenoModelsHandler/invocations'
-        httpMethod: "POST"
-        type: "aws_proxy"
 components:
   schemas:
     Id:
@@ -353,15 +365,32 @@ components:
           $ref: '#/components/schemas/Version'
     NewPhoto:
       type: object
+      required:
+        - photoSlug
+      properties:
+        photoSlug:
+          $ref: '#/components/schemas/Slug'
+    CreatedPhoto:
+      type: object
+      required:
+        - photoId
+        - photoSlug
+        - uploadUri
       properties:
         photoId: 
           $ref: '#/components/schemas/Id'
+        photoSlug:
+          $ref: '#/components/schemas/Slug'
         uploadUri: 
           $ref: '#/components/schemas/URI'
     Photo:
       type: object
       required:
         - photoSlug
+        - uri
+        - photoId
+        - version
+        - archived
       properties:
         photoId:
           $ref: '#/components/schemas/Id'
@@ -379,6 +408,11 @@ components:
           description: 'Height of the photo in pixels.'
           minimum: 1
           maximum: 30000
+        modelSlug:
+          $ref: '#/components/schemas/Slug'
+        archived:
+          type: boolean
+          description: 'Tells whether the photo was archived (its contents are still on disk).'
         version:
           $ref: '#/components/schemas/Version'
     PaginationMetadata:
@@ -405,19 +439,13 @@ components:
             $ref: '#/components/schemas/Model'
     Photos:
       type: object
+      required:
+        - metadata
+        - items
       properties:
         metadata:
           $ref: '#/components/schemas/PaginationMetadata'
-        models:
-          type: array
-          items:
-            $ref: '#/components/schemas/Photo'
-    ModelPhotos:
-      type: object
-      properties:
-        metadata:
-          $ref: '#/components/schemas/PaginationMetadata'
-        photos:
+        items:
           type: array
           items:
             $ref: '#/components/schemas/Photo'
