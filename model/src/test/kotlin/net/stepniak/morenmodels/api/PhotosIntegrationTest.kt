@@ -19,6 +19,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
+// TODO: 404 when slugs don't exist
 class PhotosIntegrationTest : BaseIntegrationTest() {
     @Test
     fun `creates a new photo and returns upload URL`() {
