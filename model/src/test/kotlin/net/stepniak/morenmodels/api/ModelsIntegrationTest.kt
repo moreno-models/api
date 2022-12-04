@@ -212,16 +212,16 @@ class ModelsIntegrationTest : BaseIntegrationTest() {
     @Test
     fun `archives a model`() {
         // given
-        val model = createModel()
+        val modelSlug = createModel().modelSlug
 
         // when
-        api.archiveModel(model.modelSlug, false)
+        api.archiveModel(modelSlug, true)
 
         // then
-        assertTrue(api.getModel(model.modelSlug).archived)
+        assertTrue(api.getModel(modelSlug).archived)
 
         // cleanup
-        api.archiveModel(model.modelSlug, true)
+        api.archiveModel(modelSlug, true)
     }
 
     @Test

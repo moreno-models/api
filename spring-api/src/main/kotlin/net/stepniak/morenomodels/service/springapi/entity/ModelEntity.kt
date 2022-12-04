@@ -3,7 +3,6 @@ package net.stepniak.morenomodels.service.springapi.entity
 import net.stepniak.morenomodels.service.generated.model.EyeColor
 import org.hibernate.annotations.NaturalId
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.repository.CrudRepository
 import java.time.OffsetDateTime
 import javax.persistence.Column
 import javax.persistence.Entity
@@ -14,9 +13,9 @@ import javax.validation.constraints.Min
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.Size
 
-@Entity
+@Entity(name = "Model")
 @Table(name = "models")
-open class Model {
+open class ModelEntity {
     @NotBlank
     @Id
     @Column(nullable = false, updatable = false, length = 64)
@@ -50,6 +49,7 @@ open class Model {
         protected set
 
     open var eyeColor: EyeColor? = null
+
     @Max(220)
     @Min(100)
     open var height: Int? = null
@@ -60,7 +60,7 @@ open class Model {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as Model
+        other as ModelEntity
 
         if (modelSlug != other.modelSlug) return false
 
@@ -71,4 +71,3 @@ open class Model {
         return modelSlug?.hashCode() ?: 0
     }
 }
-interface ModelRepository : JpaRepository<Model, String>
