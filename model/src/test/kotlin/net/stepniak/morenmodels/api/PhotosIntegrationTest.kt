@@ -4,10 +4,7 @@
 package net.stepniak.morenmodels.api
 
 import net.stepniak.morenomodels.api.infrastructure.ClientException
-import net.stepniak.morenomodels.api.model.CreatedPhoto
-import net.stepniak.morenomodels.api.model.NewPhoto
-import net.stepniak.morenomodels.api.model.Photo
-import net.stepniak.morenomodels.api.model.Photos
+import net.stepniak.morenomodels.api.model.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody
@@ -19,7 +16,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-// TODO: 404 when slugs don't exist
 class PhotosIntegrationTest : BaseIntegrationTest() {
     @Test
     fun `creates a new photo and returns upload URL`() {
@@ -48,6 +44,27 @@ class PhotosIntegrationTest : BaseIntegrationTest() {
         // cleanup
         api.archivePhoto(createdPhoto.photoSlug, delete = true)
     }
+
+    @Test
+    fun `properly handles not existing photos when getting one`() {
+        // given, when
+        val ex = assertThrows<ClientException> {
+            api.getPhoto(NON_EXISTENT_SLUG)
+        }
+        // then
+        assertEquals(404, ex.statusCode)
+    }
+
+    @Test
+    fun `properly handles not existing photos deleting getting one`() {
+        // given, when
+        val ex = assertThrows<ClientException> {
+            api.archivePhoto(NON_EXISTENT_SLUG, true)
+        }
+        // then
+        assertEquals(404, ex.statusCode)
+    }
+
 
     @Test
     fun `validates create photo parameters`() {
@@ -168,31 +185,80 @@ class PhotosIntegrationTest : BaseIntegrationTest() {
     }
 
     @Test
+    fun `lists archived photos and paginates`() {
+        // given
+        val pageSize = 5
+        val numberOfCreatedPhotos = 11
+        val createdPhotos = (1..11).map {
+            createAndUploadPhoto(true)
+        }.toList()
+        createdPhotos.forEach { api.archivePhoto(it.photoSlug, delete = false) }
+
+        var seenPages = 0
+        var seenPhotos = 0
+        var photos: Photos? = null
+        // when
+        do {
+            photos = api.listPhotos(
+                nextToken = photos?.metadata?.nextToken,
+                pageSize,
+                showArchived = true,
+                modelSlug = null,
+            );
+
+            seenPages += 1
+            seenPhotos += photos.items.size
+
+            photos.items.forEach {
+                assertNotNull(it.photoId)
+                assertNotNull(it.photoSlug)
+                assertNotNull(it.version)
+                assertNotNull(it.uri)
+            }
+
+        } while (photos?.metadata?.nextToken != null)
+
+        // then
+        assertTrue {
+            seenPhotos == numberOfCreatedPhotos
+                    && seenPages == 3
+        }
+
+        // cleanup
+        createdPhotos.forEach { api.archivePhoto(it.photoSlug, true) }
+    }
+
+    @Test
     fun `lists photos filtered by a model`() {
         // given
-        val createdPhoto = createAndUploadPhoto(true)
+        val model = api.createModel(NewModel(
+            "test-model-${UUID.randomUUID()}",
+            givenName = "Konrad",
+            familyName = "Moreno"
+        ))
+        val createdPhoto = createAndUploadPhoto(true, model.modelSlug)
 
         // when
         val photos = api.listPhotos(
-            modelSlug = "non-existent-model",
+            modelSlug = model.modelSlug,
             nextToken = null,
             showArchived = null,
             pageSize = null
         )
 
         // then
-        assertTrue {
-            photos.items.isEmpty()
-        }
+        assertEquals(1, photos.items.size)
 
         // cleanup
         api.archivePhoto(createdPhoto.photoSlug, true)
+        api.archiveModel(model.modelSlug, true)
     }
 
-    private fun createAndUploadPhoto(small: Boolean = true): CreatedPhoto {
+    private fun createAndUploadPhoto(small: Boolean = true, modelSlug: String? = null): CreatedPhoto {
         val createdPhoto = api.createPhoto(
             NewPhoto(
-                photoSlug = "test-photo-${UUID.randomUUID()}"
+                photoSlug = "test-photo-${UUID.randomUUID()}",
+                modelSlug = modelSlug
             )
         )
 
@@ -232,5 +298,6 @@ class PhotosIntegrationTest : BaseIntegrationTest() {
 
     companion object {
         private const val INVALID_SLUG = "#4_(*!@#*/"
+        private const val NON_EXISTENT_SLUG = "non-ex3st1nt-sl4g"
     }
 }

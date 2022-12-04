@@ -36,8 +36,9 @@ CREATE TABLE models (
 
 /*
  Open questions:
+ - Should we model the relationship between models and photos how. Let's add an additional table, much more flexibility. No.
+
  - Do we want categories at this point? What's the point. Yes -> It'll show the complexity of the code better.
- - Should we model the relationship between models and photos how. Let's add an additional table, much more flexibility.
  - Do we want to have works at this point? What's the point -> Yes -> it's meant to replace the current website.
  - Do we want to draw DynamoDB?
  */

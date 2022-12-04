@@ -96,6 +96,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Photo'
+        404:
+          description: Photo for the provided slug was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         500:
           description: Unexpected error.
           content:
@@ -114,6 +120,12 @@ paths:
       responses:
         201:
           description: Confirmation that the photo was properly archived.
+        404:
+          description: Photo for the provided slug was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         500:
           description: Unexpected error.
           content:
@@ -188,6 +200,12 @@ paths:
         required: false
         schema:
           $ref: '#/components/schemas/PageSize'
+      - name: showArchived
+        description: Whether to show archived photos.
+        in: query
+        required: false
+        schema:
+          type: boolean
       responses:
         200:
           description: The model list
@@ -214,7 +232,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Model'
+              $ref: '#/components/schemas/NewModel'
       responses:
         200:
           description: The created model's data.
@@ -266,6 +284,30 @@ paths:
         uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:MorenoModelsHandler/invocations'
         httpMethod: "POST"
         type: "aws_proxy"
+    delete:
+      operationId: archiveModel
+      summary: Marks model as archived or completely deletes it from the application
+      parameters:
+        - name: delete
+          description: If set to true, deletes photo from the database and the underlying storage.
+          in: query
+          schema:
+            type: boolean
+      responses:
+        201:
+          description: Confirmation that the model was properly archived.
+        404:
+          description: Model for the provided slug was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Unexpected error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     put:
       operationId: updateModel
       summary: Update a model's personal details
@@ -274,7 +316,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Model'
+              $ref: '#/components/schemas/UpdatableModel'
       responses:
         200:
           description: The model's update personal data corresponding to the provided `modelSlug`.
@@ -323,6 +365,10 @@ components:
       type: integer
       minimum: 1
       maximum: 1000
+    DateTime:
+      description: DateTime with Time zone specified, according to RFC 3339, section 5.6
+      type: string
+      format: 'date-time'
     URI:
       description: The uri of a resource.
       type: string
@@ -330,13 +376,72 @@ components:
       description: Human readable identifier.
       type: string
       pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+      minLength: 1
       maxLength: 100
+    EyeColor:
+      type: string
+      enum:
+        - blue
+        - green
+        - brown
+        - gray
+        - unique
+    Height:
+      description: 'Height in centimeters.'
+      type: integer
+      minimum: 140
+      maximum: 220
+    NewModel:
+      type: object
+      required:
+        - modelSlug
+        - givenName
+        - familyName
+      properties:
+        modelSlug:
+          $ref: '#/components/schemas/Slug'
+        givenName:
+          type: string
+          maxLength: 64
+        familyName:
+          type: string
+          maxLength: 64
+        eyeColor:
+          $ref: '#/components/schemas/EyeColor'
+        height:
+          $ref: '#/components/schemas/Height'
+    UpdatableModel:
+      type: object
+      required:
+        - version
+      properties:
+        modelSlug:
+          $ref: '#/components/schemas/Slug'
+        givenName:
+          type: string
+          maxLength: 64
+        familyName:
+          type: string
+          maxLength: 64
+        eyeColor:
+          $ref: '#/components/schemas/EyeColor'
+        height:
+          $ref: '#/components/schemas/Height'
+        archived:
+          type: boolean
+          description: 'Tells whether the model were archived (its contents are still on disk).'
+        version:
+          $ref: '#/components/schemas/Version'
     Model:
       type: object
       required:
+        - modelId
         - modelSlug 
         - givenName
         - familyName
+        - created
+        - version
+        - archived
       properties:
         modelId:
           $ref: '#/components/schemas/Id'
@@ -349,18 +454,16 @@ components:
           type: string
           maxLength: 64
         eyeColor:
-          type: string
-          enum:
-            - blue
-            - green
-            - brown
-            - gray
-            - unique
+          $ref: '#/components/schemas/EyeColor'
         height:
-          description: 'Height in centimeters.'
-          type: integer
-          minimum: 140
-          maximum: 220
+          $ref: '#/components/schemas/Height'
+        archived:
+          type: boolean
+          description: 'Tells whether the model were archived (its contents are still on disk).'
+        created:
+          $ref: '#/components/schemas/DateTime'
+        updated:
+          $ref: '#/components/schemas/DateTime'
         version:
           $ref: '#/components/schemas/Version'
     NewPhoto:
@@ -369,6 +472,8 @@ components:
         - photoSlug
       properties:
         photoSlug:
+          $ref: '#/components/schemas/Slug'
+        modelSlug:
           $ref: '#/components/schemas/Slug'
     CreatedPhoto:
       type: object
@@ -413,6 +518,10 @@ components:
         archived:
           type: boolean
           description: 'Tells whether the photo was archived (its contents are still on disk).'
+        created:
+          $ref: '#/components/schemas/DateTime'
+        updated:
+          $ref: '#/components/schemas/DateTime'
         version:
           $ref: '#/components/schemas/Version'
     PaginationMetadata:
@@ -428,10 +537,13 @@ components:
           type: string
     Models:
       type: object
+      required:
+        - metadata
+        - items
       properties:
         metadata:
           $ref: '#/components/schemas/PaginationMetadata'
-        models:
+        items:
           type: array
           items:
             $ref: '#/components/schemas/Model'
