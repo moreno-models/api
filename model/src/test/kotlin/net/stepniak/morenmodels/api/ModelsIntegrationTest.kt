@@ -102,6 +102,7 @@ class ModelsIntegrationTest : BaseIntegrationTest() {
         assertEquals(updatableModel.eyeColor, updatedModel.eyeColor)
         assertEquals(updatableModel.height, updatedModel.height)
         assertEquals(409, ex.statusCode)
+        assertNotNull(updatedModel.updated)
 
         // cleanup
         api.archiveModel(model.modelSlug, true)

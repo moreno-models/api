@@ -389,7 +389,7 @@ components:
     Height:
       description: 'Height in centimeters.'
       type: integer
-      minimum: 140
+      minimum: 100
       maximum: 220
     NewModel:
       type: object

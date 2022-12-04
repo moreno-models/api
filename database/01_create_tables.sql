@@ -1,38 +1,41 @@
-CREATE TABLE photos (
-    photo_id varchar(64) NOT NULL,
-    photo_slug varchar(100) UNIQUE NOT NULL,
+CREATE TABLE models
+(
+    model_id    varchar(64)              NOT NULL,
+    model_slug  varchar(100) UNIQUE      NOT NULL,
 
-    uri varchar(512),
-    width integer,
-    height integer,
+    given_name  varchar(64)              NOT NULL,
+    family_name varchar(64)              NOT NULL,
+    eye_color   varchar(32),
+    height      integer,
 
-    version integer NOT NULL,
-    archived boolean,
-    created TIMESTAMP WITH TIME ZONE NOT NULL,
-    updated TIMESTAMP WITH TIME ZONE,
-
-    model_id varchar(128),
-    PRIMARY KEY (photo_id),
-    CONSTRAINT fk_models
-        FOREIGN KEY(model_id)
-            REFERENCES models(model_id)
+    version     integer                  NOT NULL,
+    archived    boolean                  NOT NULL,
+    created     TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated     TIMESTAMP WITH TIME ZONE,
+    PRIMARY KEY (model_id)
 );
 
-CREATE TABLE models (
-    model_id varchar(64) NOT NULL,
-    model_slug varchar(100) UNIQUE NOT NULL,
 
-    given_name varchar(64) NOT NULL,
-    family_name varchar(64) NOT NULL,
-    eye_color varchar(32),
-    height integer,
+CREATE TABLE photos
+(
+    photo_id   varchar(64)              NOT NULL,
+    photo_slug varchar(100) UNIQUE      NOT NULL,
 
-    version integer,
-    archived boolean,
-    created TIMESTAMP WITH TIME ZONE NOT NULL,
-    updated TIMESTAMP WITH TIME ZONE,
-    PRIMARY KEY (model_id)
-)
+    uri        varchar(512),
+    width      integer,
+    height     integer,
+
+    version    integer                  NOT NULL,
+    archived   boolean                  NOT NULL,
+    created    TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated    TIMESTAMP WITH TIME ZONE,
+
+    model_id   varchar(128),
+    PRIMARY KEY (photo_id),
+    CONSTRAINT fk_models
+        FOREIGN KEY (model_id)
+            REFERENCES models (model_id)
+);
 
 /*
  Open questions:
