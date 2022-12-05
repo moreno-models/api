@@ -160,7 +160,7 @@ class PhotosIntegrationTest : BaseIntegrationTest() {
                 pageSize,
                 showArchived = null,
                 modelSlug = null,
-            );
+            )
 
             seenPages += 1
             seenPhotos += photos.items.size
@@ -204,7 +204,7 @@ class PhotosIntegrationTest : BaseIntegrationTest() {
                 pageSize,
                 showArchived = true,
                 modelSlug = null,
-            );
+            )
 
             seenPages += 1
             seenPhotos += photos.items.size
@@ -280,7 +280,7 @@ class PhotosIntegrationTest : BaseIntegrationTest() {
                         ?.toRequestBody(photoMediaType)
                 )
                 .build()
-        ).execute();
+        ).execute()
 
         assertTrue { response.isSuccessful }
     }
@@ -288,10 +288,10 @@ class PhotosIntegrationTest : BaseIntegrationTest() {
     private fun downloadPhoto(photo: Photo): Int {
         val response = httpClient.newCall(
             Request.Builder()
-                .url(photo.uri.toURL())
+                .url(photo.uri!!.toURL())
                 .method("GET", null)
                 .build()
-        ).execute();
+        ).execute()
 
         return response.body!!.bytes().size
     }

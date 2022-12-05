@@ -14,7 +14,12 @@ import javax.validation.Valid
 
 @RestController
 class ModelsController(val modelsService: ModelsService) : ModelsApiController() {
-    override fun listModels(nextToken: String?, pageSize: Int?, showArchived: Boolean?, givenName: String?): ResponseEntity<Models> {
+    override fun listModels(
+        @RequestParam("delete", required = false) nextToken: String?,
+        @RequestParam("pageSize", required = false) pageSize: Int?,
+        @RequestParam("showArchived", required = false) showArchived: Boolean?,
+        @RequestParam("givenName", required = false)  givenName: String?
+    ): ResponseEntity<Models> {
         val page = modelsService.listModels(
             nextToken,
             pageSize ?: 30,

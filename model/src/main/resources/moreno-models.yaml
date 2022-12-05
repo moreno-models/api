@@ -498,9 +498,9 @@ components:
       type: object
       required:
         - photoSlug
-        - uri
         - photoId
         - version
+        - created
         - archived
       properties:
         photoId:
