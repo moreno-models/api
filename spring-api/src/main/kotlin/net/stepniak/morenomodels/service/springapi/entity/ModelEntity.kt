@@ -15,7 +15,12 @@ import javax.validation.constraints.Size
 
 @Entity(name = "Model")
 @Table(name = "models")
-open class ModelEntity {
+open class ModelEntity() {
+    constructor(modelId: String, created: OffsetDateTime) : this() {
+        this.modelId = modelId
+        this.created = created
+    }
+
     @NotBlank
     @Id
     @Column(nullable = false, updatable = false, length = 64)

@@ -3,14 +3,17 @@ package net.stepniak.morenomodels.service.springapi.controllers
 import net.stepniak.morenomodels.service.generated.ModelsApiController
 import net.stepniak.morenomodels.service.generated.model.Model
 import net.stepniak.morenomodels.service.generated.model.Models
+import net.stepniak.morenomodels.service.generated.model.NewModel
 import net.stepniak.morenomodels.service.generated.model.PaginationMetadata
 import net.stepniak.morenomodels.service.springapi.entity.ModelEntity
 import net.stepniak.morenomodels.service.springapi.repositories.ModelFilters
 import net.stepniak.morenomodels.service.springapi.services.ModelsService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import javax.validation.Valid
 
 @RestController
 class ModelsController(val modelsService: ModelsService) : ModelsApiController() {
@@ -18,14 +21,16 @@ class ModelsController(val modelsService: ModelsService) : ModelsApiController()
         val page = modelsService.listModels(
             nextToken,
             pageSize ?: 30,
-            ModelFilters(showArchived ?: false )
+            ModelFilters(showArchived ?: false)
         )
-        return ResponseEntity.ok(Models(
-            metadata = PaginationMetadata(
-                nextToken = page.nextToken
-            ),
-            items = page.models.map(::toApiModel)
-        ))
+        return ResponseEntity.ok(
+            Models(
+                metadata = PaginationMetadata(
+                    nextToken = page.nextToken
+                ),
+                items = page.models.map(::toApiModel)
+            )
+        )
     }
 
     override fun getModel(@PathVariable("modelSlug") modelSlug: String): ResponseEntity<Model> {
@@ -44,6 +49,12 @@ class ModelsController(val modelsService: ModelsService) : ModelsApiController()
     ): ResponseEntity<Unit> {
         modelsService.archiveModel(modelSlug, delete ?: false)
         return ResponseEntity.ok(Unit)
+    }
+
+    override fun createModel(@RequestBody newModel: NewModel): ResponseEntity<Model> {
+        return ResponseEntity.ok(
+            toApiModel(modelsService.createModel(newModel))
+        )
     }
 
     fun toApiModel(m: ModelEntity): Model = Model(
