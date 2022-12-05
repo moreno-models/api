@@ -206,6 +206,12 @@ paths:
         required: false
         schema:
           type: boolean
+      - name: givenName
+        description: Filter by givenName in LIKE manner.
+        in: query
+        required: false
+        schema:
+          $ref: '#/components/schemas/GivenName'
       responses:
         200:
           description: The model list
@@ -391,6 +397,14 @@ components:
       type: integer
       minimum: 100
       maximum: 220
+    GivenName:
+      description: 'Given name, e.g. Konrad'
+      type: string
+      maxLength: 64
+    FamilyName:
+      description: 'Family name, e.g. Smith'
+      type: string
+      maxLength: 64
     NewModel:
       type: object
       required:
@@ -401,11 +415,9 @@ components:
         modelSlug:
           $ref: '#/components/schemas/Slug'
         givenName:
-          type: string
-          maxLength: 64
+          $ref: '#/components/schemas/GivenName'
         familyName:
-          type: string
-          maxLength: 64
+          $ref: '#/components/schemas/FamilyName'
         eyeColor:
           $ref: '#/components/schemas/EyeColor'
         height:
@@ -415,14 +427,10 @@ components:
       required:
         - version
       properties:
-        modelSlug:
-          $ref: '#/components/schemas/Slug'
         givenName:
-          type: string
-          maxLength: 64
+          $ref: '#/components/schemas/GivenName'
         familyName:
-          type: string
-          maxLength: 64
+          $ref: '#/components/schemas/FamilyName'
         eyeColor:
           $ref: '#/components/schemas/EyeColor'
         height:
@@ -448,11 +456,9 @@ components:
         modelSlug:
           $ref: '#/components/schemas/Slug'
         givenName:
-          type: string
-          maxLength: 64
+          $ref: '#/components/schemas/GivenName'
         familyName:
-          type: string
-          maxLength: 64
+          $ref: '#/components/schemas/FamilyName'
         eyeColor:
           $ref: '#/components/schemas/EyeColor'
         height:

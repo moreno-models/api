@@ -31,6 +31,8 @@ class CustomModelsRepositoryImpl(
             where.add(builder.greaterThan(entity.get("modelId"), nextToken))
         if (!filters.showArchived)
             where.add(builder.equal(entity.get<Boolean>("archived"), false))
+        if (filters.givenName != null)
+            where.add(builder.like(entity.get("givenName"), filters.givenName))
 
         query
             .where(*where.toTypedArray())
@@ -41,7 +43,7 @@ class CustomModelsRepositoryImpl(
             .resultList
         return ModelsPage(
             models = results,
-            nextToken = results.lastOrNull()?.modelId
+            nextToken = if (results.size == pageSize) results.lastOrNull()?.modelId else null
         )
     }
 
@@ -49,4 +51,4 @@ class CustomModelsRepositoryImpl(
 
 data class ModelsPage(val models: List<ModelEntity>, val nextToken: String? = null)
 
-data class ModelFilters(val showArchived: Boolean)
+data class ModelFilters(val showArchived: Boolean, val givenName: String? = null)

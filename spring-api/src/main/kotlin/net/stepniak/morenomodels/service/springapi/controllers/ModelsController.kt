@@ -1,10 +1,7 @@
 package net.stepniak.morenomodels.service.springapi.controllers
 
 import net.stepniak.morenomodels.service.generated.ModelsApiController
-import net.stepniak.morenomodels.service.generated.model.Model
-import net.stepniak.morenomodels.service.generated.model.Models
-import net.stepniak.morenomodels.service.generated.model.NewModel
-import net.stepniak.morenomodels.service.generated.model.PaginationMetadata
+import net.stepniak.morenomodels.service.generated.model.*
 import net.stepniak.morenomodels.service.springapi.entity.ModelEntity
 import net.stepniak.morenomodels.service.springapi.repositories.ModelFilters
 import net.stepniak.morenomodels.service.springapi.services.ModelsService
@@ -17,11 +14,11 @@ import javax.validation.Valid
 
 @RestController
 class ModelsController(val modelsService: ModelsService) : ModelsApiController() {
-    override fun listModels(nextToken: String?, pageSize: Int?, showArchived: Boolean?): ResponseEntity<Models> {
+    override fun listModels(nextToken: String?, pageSize: Int?, showArchived: Boolean?, givenName: String?): ResponseEntity<Models> {
         val page = modelsService.listModels(
             nextToken,
             pageSize ?: 30,
-            ModelFilters(showArchived ?: false)
+            ModelFilters(showArchived ?: false, givenName)
         )
         return ResponseEntity.ok(
             Models(
@@ -54,6 +51,15 @@ class ModelsController(val modelsService: ModelsService) : ModelsApiController()
     override fun createModel(@RequestBody newModel: NewModel): ResponseEntity<Model> {
         return ResponseEntity.ok(
             toApiModel(modelsService.createModel(newModel))
+        )
+    }
+
+    override fun updateModel(
+        @PathVariable("modelSlug") modelSlug: String,
+        @RequestBody updatableModel: UpdatableModel
+    ): ResponseEntity<Model> {
+        return ResponseEntity.ok(
+            toApiModel(modelsService.updateModel(modelSlug, updatableModel))
         )
     }
 

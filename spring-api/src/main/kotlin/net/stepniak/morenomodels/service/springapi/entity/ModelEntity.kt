@@ -67,12 +67,12 @@ open class ModelEntity() {
 
         other as ModelEntity
 
-        if (modelSlug != other.modelSlug) return false
+        if (modelId != other.modelId) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        return modelSlug?.hashCode() ?: 0
+        return modelId?.hashCode() ?: 0
     }
 }

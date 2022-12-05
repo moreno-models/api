@@ -79,7 +79,6 @@ class ModelsIntegrationTest : BaseIntegrationTest() {
         )
         val model = api.createModel(newModel)
         val updatableModel = UpdatableModel(
-            modelSlug = "different-slug-${UUID.randomUUID()}",
             givenName = "Matthew",
             familyName = "Conrad",
             eyeColor = EyeColor.brown,
@@ -96,7 +95,6 @@ class ModelsIntegrationTest : BaseIntegrationTest() {
 
         // then
         assertEquals(2, updatedModel.version)
-        assertEquals(updatableModel.modelSlug, updatedModel.modelSlug)
         assertEquals(updatableModel.givenName, updatedModel.givenName)
         assertEquals(updatableModel.familyName, updatedModel.familyName)
         assertEquals(updatableModel.eyeColor, updatedModel.eyeColor)
@@ -127,10 +125,11 @@ class ModelsIntegrationTest : BaseIntegrationTest() {
         // given
         val pageSize = 5
         val numberOfCreatedModels = 11
+        val givenName = UUID.randomUUID().toString()
         val createdModels = (1..11).map {
             api.createModel(NewModel(
                 "test-model-${UUID.randomUUID()}",
-                givenName = "Konrad $it",
+                givenName = givenName,
                 familyName = "Moreno ${it * 10}"
             ))
         }.toList()
@@ -144,6 +143,7 @@ class ModelsIntegrationTest : BaseIntegrationTest() {
                 nextToken = models?.metadata?.nextToken,
                 pageSize,
                 showArchived = null,
+                givenName = givenName
             );
 
             seenPages += 1
@@ -156,17 +156,15 @@ class ModelsIntegrationTest : BaseIntegrationTest() {
                 assertNull(it.eyeColor)
                 assertEquals(false, it.archived)
                 assertNotNull(it.created)
-                assertNull(it.created)
+                assertNull(it.updated)
                 assertEquals(1, it.version)
             }
 
         } while (models?.metadata?.nextToken != null)
 
         // then
-        assertTrue {
-            seenModels == numberOfCreatedModels
-                    && seenPages == 3
-        }
+        assertEquals(numberOfCreatedModels, seenModels)
+        assertEquals(3, seenPages)
 
         // cleanup
         createdModels.forEach { api.archiveModel(it.modelSlug, true) }
@@ -179,7 +177,8 @@ class ModelsIntegrationTest : BaseIntegrationTest() {
             api.listModels(
                 nextToken = "3".repeat(513),
                 pageSize = 1001,
-                showArchived = null
+                showArchived = null,
+                givenName = "3".repeat(300)
             )
         }
         // then
@@ -215,7 +214,7 @@ class ModelsIntegrationTest : BaseIntegrationTest() {
         val modelSlug = createModel().modelSlug
 
         // when
-        api.archiveModel(modelSlug, true)
+        api.archiveModel(modelSlug, false)
 
         // then
         assertTrue(api.getModel(modelSlug).archived)
@@ -250,8 +249,7 @@ class ModelsIntegrationTest : BaseIntegrationTest() {
             modelSlug = "test-model-${UUID.randomUUID()}",
             givenName = "Test",
             familyName = "Model"
-        )
-        )
+        ))
     }
 
     companion object {
