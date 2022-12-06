@@ -3,9 +3,12 @@ package net.stepniak.morenomodels.service.springapi.controllers
 import net.stepniak.morenomodels.service.generated.PhotosApiController
 import net.stepniak.morenomodels.service.generated.model.*
 import net.stepniak.morenomodels.service.springapi.entity.PhotoEntity
+import net.stepniak.morenomodels.service.springapi.exceptions.NotImageException
 import net.stepniak.morenomodels.service.springapi.repositories.ModelFilters
 import net.stepniak.morenomodels.service.springapi.repositories.PhotoFilters
 import net.stepniak.morenomodels.service.springapi.services.PhotosService
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.Resource
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PathVariable
@@ -13,11 +16,19 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.net.URI
+import javax.imageio.ImageIO
 
 @RestController
-class PhotosController(private val photosService: PhotosService) : PhotosApiController() {
+class PhotosController(
+    private val photosService: PhotosService,
+    @Value("\${moreno_models.server_url}") private val serverOrigin: String
+) : PhotosApiController() {
+    private val LOG = LoggerFactory.getLogger(this::class.java)
+
+
+
     override fun listPhotos(
-        @RequestParam("delete", required = false) nextToken: String?,
+        @RequestParam("nextToken", required = false) nextToken: String?,
         @RequestParam("pageSize", required = false) pageSize: Int?,
         @RequestParam("showArchived", required = false) showArchived: Boolean?,
         @RequestParam("modelSlug", required = false)  modelSlug: String?
@@ -39,14 +50,14 @@ class PhotosController(private val photosService: PhotosService) : PhotosApiCont
     }
 
     override fun archivePhoto(
-        @PathVariable("modelSlug") photoSlug: String,
+        @PathVariable("photoSlug") photoSlug: String,
         @RequestParam("delete", required = false) delete: Boolean?
     ): ResponseEntity<Unit> {
         photosService.archivePhoto(photoSlug, delete ?: false)
         return ResponseEntity.ok(Unit)
     }
 
-    override fun getPhoto(@PathVariable("photoSlog") photoSlug: String): ResponseEntity<Photo> {
+    override fun getPhoto(@PathVariable("photoSlug") photoSlug: String): ResponseEntity<Photo> {
         val photo = photosService.getPhoto(photoSlug)
         return if (photo != null) {
             ResponseEntity.ok(toApiModel(photo))
@@ -60,13 +71,27 @@ class PhotosController(private val photosService: PhotosService) : PhotosApiCont
             CreatedPhoto(
                 photoId = photo.photoId!!,
                 photoSlug = photo.photoSlug!!,
-                uploadUri = URI.create("/photos/${photo.photoSlug}/upload")
+                uploadUri = URI.create("${serverOrigin}/photos/${photo.photoSlug}/upload")
             )
         )
     }
 
-    override fun uploadPhoto(photoSlug: String, body: Resource): ResponseEntity<Photo> {
-        return ResponseEntity.notFound().build();
+    override fun uploadPhoto(@PathVariable("photoSlug") photoSlug: String, @RequestBody body: Resource): ResponseEntity<Photo> {
+        try {
+            ImageIO.createImageInputStream(body.inputStream).use {
+                val readers = ImageIO.getImageReaders(it)
+                val imageReader = readers.next()
+                imageReader.input = it
+                val format = imageReader.formatName
+                val image = imageReader.read(0)
+
+                val photo = photosService.uploadPhoto(photoSlug, image, format)
+                return ResponseEntity.ok(toApiModel(photo))
+            }
+        } catch (e: Exception) {
+            LOG.warn("Tried to upload something which is not an image", e)
+            throw NotImageException()
+        }
     }
 
     fun toApiModel(p: PhotoEntity): Photo = Photo(
@@ -75,7 +100,7 @@ class PhotosController(private val photosService: PhotosService) : PhotosApiCont
         archived = p.archived!!,
         version = p.version!!,
         created = p.created!!,
-        uri = p.uri,
+        uri = if (p.uri != null) URI.create("$serverOrigin/content/${p.uri}") else null,
         width = p.width,
         height = p.height,
         modelSlug = p.model?.modelSlug,

@@ -161,6 +161,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Photo'
+        400:
+          description: Provided file is not an image.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: No model found for the provided `photoSlug`.
           content:

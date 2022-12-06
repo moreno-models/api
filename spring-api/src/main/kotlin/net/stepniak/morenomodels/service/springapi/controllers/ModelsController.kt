@@ -15,7 +15,7 @@ import javax.validation.Valid
 @RestController
 class ModelsController(val modelsService: ModelsService) : ModelsApiController() {
     override fun listModels(
-        @RequestParam("delete", required = false) nextToken: String?,
+        @RequestParam("nextToken", required = false) nextToken: String?,
         @RequestParam("pageSize", required = false) pageSize: Int?,
         @RequestParam("showArchived", required = false) showArchived: Boolean?,
         @RequestParam("givenName", required = false)  givenName: String?

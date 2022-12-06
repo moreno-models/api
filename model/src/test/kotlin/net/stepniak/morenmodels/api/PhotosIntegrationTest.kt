@@ -38,7 +38,8 @@ class PhotosIntegrationTest : BaseIntegrationTest() {
         assertNotNull(receivedPhoto.photoSlug)
         assertNotNull(receivedPhoto.uri)
         assertNotNull(receivedPhoto.version)
-        // TODO: Parsing Photo Dimensions and automatic scaling is not implemented yet.
+        assertNotNull(receivedPhoto.width)
+        assertNotNull(receivedPhoto.height)
         assert(downloadPhoto(receivedPhoto) > 420)
 
         // cleanup
@@ -144,10 +145,16 @@ class PhotosIntegrationTest : BaseIntegrationTest() {
     @Test
     fun `lists photos and paginates`() {
         // given
+        val newModel = NewModel(
+            modelSlug = "test-model-${UUID.randomUUID()}",
+            givenName = "Konrad",
+            familyName = "Moreno"
+        )
+        val model = api.createModel(newModel)
         val pageSize = 5
         val numberOfCreatedPhotos = 11
         val createdPhotos = (1..11).map {
-            createAndUploadPhoto(true)
+            createAndUploadPhoto(true, modelSlug = model.modelSlug)
         }.toList()
 
         var seenPages = 0
@@ -159,7 +166,7 @@ class PhotosIntegrationTest : BaseIntegrationTest() {
                 nextToken = photos?.metadata?.nextToken,
                 pageSize,
                 showArchived = null,
-                modelSlug = null,
+                modelSlug = model.modelSlug,
             )
 
             seenPages += 1
@@ -182,15 +189,22 @@ class PhotosIntegrationTest : BaseIntegrationTest() {
 
         // cleanup
         createdPhotos.forEach { api.archivePhoto(it.photoSlug, true) }
+        api.archiveModel(model.modelSlug, true)
     }
 
     @Test
     fun `lists archived photos and paginates`() {
         // given
+        val newModel = NewModel(
+            modelSlug = "test-model-${UUID.randomUUID()}",
+            givenName = "Konrad",
+            familyName = "Moreno"
+        )
+        val model = api.createModel(newModel)
         val pageSize = 5
         val numberOfCreatedPhotos = 11
         val createdPhotos = (1..11).map {
-            createAndUploadPhoto(true)
+            createAndUploadPhoto(true, model.modelSlug)
         }.toList()
         createdPhotos.forEach { api.archivePhoto(it.photoSlug, delete = false) }
 
@@ -203,7 +217,7 @@ class PhotosIntegrationTest : BaseIntegrationTest() {
                 nextToken = photos?.metadata?.nextToken,
                 pageSize,
                 showArchived = true,
-                modelSlug = null,
+                modelSlug = model.modelSlug,
             )
 
             seenPages += 1
@@ -226,6 +240,7 @@ class PhotosIntegrationTest : BaseIntegrationTest() {
 
         // cleanup
         createdPhotos.forEach { api.archivePhoto(it.photoSlug, true) }
+        api.archiveModel(model.modelSlug, true)
     }
 
     @Test
@@ -267,8 +282,8 @@ class PhotosIntegrationTest : BaseIntegrationTest() {
     }
 
     private fun uploadPhotoFromDisk(createdPhoto: CreatedPhoto, small: Boolean = true) {
-        val photoFilePath = if (small) "small-photo.png" else "big-photo.jpg"
-        val photoMediaType = if (small) "image/png".toMediaType() else "image.jpg".toMediaType()
+        val photoFilePath = if (small) "/small-photo.png" else "/big-photo.jpg"
+        val photoMediaType = if (small) "image/png".toMediaType() else "image/jpg".toMediaType()
 
 
         val response = httpClient.newCall(
@@ -276,8 +291,8 @@ class PhotosIntegrationTest : BaseIntegrationTest() {
                 .url(createdPhoto.uploadUri.toURL())
                 .method(
                     "PUT", body = RequestBody.javaClass.getResource(photoFilePath)
-                        ?.readBytes()
-                        ?.toRequestBody(photoMediaType)
+                        !!.readBytes()
+                        !!.toRequestBody(photoMediaType)
                 )
                 .build()
         ).execute()

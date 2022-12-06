@@ -42,7 +42,8 @@ open class PhotoEntity() {
 
     open var width: Int? = null
     open var height: Int? = null
-    open var uri: URI? = null
+    // Stored in relative.
+    open var uri: String? = null
 
     @ManyToOne(fetch = FetchType.EAGER, optional = true)
     @JoinColumn(name = "model_id", nullable = true)
