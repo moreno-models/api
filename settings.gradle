@@ -6,8 +6,20 @@
  * Detailed information about configuring a multi-project build in Gradle can be found
  * in the user manual at https://docs.gradle.org/7.6/userguide/multi_project_builds.html
  */
-
-rootProject.name = 'moreno-models-api'
+pluginManagement {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+    plugins {
+        id 'io.quarkus' version "${quarkusPluginVersion}"
+    }
+}
 include('model')
 include('spring-api')
 include('serverless-api')
+
+
+rootProject.name = 'moreno-models-api'
+

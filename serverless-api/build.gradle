@@ -1,9 +1,8 @@
 plugins {
-  id 'maven-publish'
   id 'java'
-  id 'io.spring.dependency-management' version '1.0.9.RELEASE'
-  id 'org.jetbrains.kotlin.jvm' version '1.3.71'
-  id 'com.github.johnrengelman.shadow' version '6.0.0'
+  id 'io.quarkus' version "${quarkusPluginVersion}"
+
+  id 'org.openapi.generator' version '5.1.1'
 }
 
 group = 'net.stepniak.morenomodels.serviceserverless'
@@ -14,37 +13,38 @@ description = """morenomodels-serverless"""
 sourceCompatibility = 11
 targetCompatibility = 11
 
-tasks.withType(JavaCompile) {
-  options.encoding = 'UTF-8'
-}
 
 repositories {
   mavenCentral()
 }
 
-// If requiring AWS JDK, uncomment the dependencyManagement to use the bill of materials
-//   https://aws.amazon.com/blogs/developer/managing-dependencies-with-aws-sdk-for-java-bill-of-materials-module-bom/
-//dependencyManagement {
-//    imports {
-//        mavenBom 'com.amazonaws:aws-java-sdk-bom:1.11.688'
-//    }
-//}
 
 dependencies {
-  api (
-      'org.jetbrains.kotlin:kotlin-stdlib:1.3.71',
-      'com.amazonaws:aws-lambda-java-core:1.2.1',
-      'com.amazonaws:aws-lambda-java-log4j2:1.5.1',
-      'org.apache.logging.log4j:log4j-api:2.17.1',
-      'org.apache.logging.log4j:log4j-core:2.17.1',
-      'com.fasterxml.jackson.core:jackson-core:2.14.0',
-      'com.fasterxml.jackson.core:jackson-databind:2.14.0',
-      'com.fasterxml.jackson.core:jackson-annotations:2.14.0'
-  )
+  implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
+  implementation 'io.quarkus:quarkus-amazon-lambda-rest'
+  implementation 'io.quarkus:quarkus-resteasy'
+  implementation 'io.quarkus:quarkus-resteasy-jackson'
+
+  testImplementation 'io.quarkus:quarkus-junit5'
+  testImplementation 'io.rest-assured:rest-assured'
 }
 
-shadowJar{
-  transform(com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer)
+compileJava {
+  options.compilerArgs << '-parameters'
 }
 
-build.finalizedBy(shadowJar)
+openApiGenerate {
+  generatorName.set("jaxrs-spec")
+  inputSpec.set("${project(':model').projectDir}/src/main/resources/moreno-models.yaml")
+  outputDir.set("$buildDir/generated")
+  packageName.set("net.stepniak.morenomodels.serviceserverless.generated")
+  apiPackage.set("net.stepniak.morenomodels.serviceserverless.generated")
+  modelPackage.set("net.stepniak.morenomodels.serviceserverless.generated.model")
+
+  configOptions = [
+      useSwaggerAnnotations: "false",
+      interfaceOnly: "true"
+  ]
+}
+
+java.sourceSets["main"].java.srcDir("$buildDir/generated/src/gen/java")
