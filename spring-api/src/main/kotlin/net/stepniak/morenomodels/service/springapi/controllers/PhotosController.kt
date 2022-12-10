@@ -1,10 +1,9 @@
 package net.stepniak.morenomodels.service.springapi.controllers
 
-import net.stepniak.morenomodels.service.generated.PhotosApiController
+import net.stepniak.morenomodels.service.generated.PhotosApi
 import net.stepniak.morenomodels.service.generated.model.*
 import net.stepniak.morenomodels.service.springapi.entity.PhotoEntity
 import net.stepniak.morenomodels.service.springapi.exceptions.NotImageException
-import net.stepniak.morenomodels.service.springapi.repositories.ModelFilters
 import net.stepniak.morenomodels.service.springapi.repositories.PhotoFilters
 import net.stepniak.morenomodels.service.springapi.services.PhotosService
 import org.slf4j.LoggerFactory
@@ -15,17 +14,14 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import java.net.URI
 import javax.imageio.ImageIO
 
 @RestController
 class PhotosController(
     private val photosService: PhotosService,
     @Value("\${moreno_models.server_url}") private val serverOrigin: String
-) : PhotosApiController() {
+) : PhotosApi {
     private val LOG = LoggerFactory.getLogger(this::class.java)
-
-
 
     override fun listPhotos(
         @RequestParam("nextToken", required = false) nextToken: String?,
@@ -71,7 +67,7 @@ class PhotosController(
             CreatedPhoto(
                 photoId = photo.photoId!!,
                 photoSlug = photo.photoSlug!!,
-                uploadUri = URI.create("${serverOrigin}/photos/${photo.photoSlug}/upload")
+                uploadUri = "${serverOrigin}/photos/${photo.photoSlug}/upload"
             )
         )
     }
@@ -100,7 +96,7 @@ class PhotosController(
         archived = p.archived!!,
         version = p.version!!,
         created = p.created!!,
-        uri = if (p.uri != null) URI.create("$serverOrigin/content/${p.uri}") else null,
+        uri = if (p.uri != null) "$serverOrigin/content/${p.uri}" else null,
         width = p.width,
         height = p.height,
         modelSlug = p.model?.modelSlug,

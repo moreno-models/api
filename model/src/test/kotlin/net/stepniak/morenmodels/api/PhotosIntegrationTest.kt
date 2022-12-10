@@ -10,6 +10,8 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.junit.jupiter.api.assertThrows
+import java.net.URI
+import java.net.URL
 import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -288,7 +290,7 @@ class PhotosIntegrationTest : BaseIntegrationTest() {
 
         val response = httpClient.newCall(
             Request.Builder()
-                .url(createdPhoto.uploadUri.toURL())
+                .url(URI.create(createdPhoto.uploadUri).toURL())
                 .method(
                     "PUT", body = RequestBody.javaClass.getResource(photoFilePath)
                         !!.readBytes()
@@ -303,7 +305,7 @@ class PhotosIntegrationTest : BaseIntegrationTest() {
     private fun downloadPhoto(photo: Photo): Int {
         val response = httpClient.newCall(
             Request.Builder()
-                .url(photo.uri!!.toURL())
+                .url(URI.create(photo.uri).toURL())
                 .method("GET", null)
                 .build()
         ).execute()

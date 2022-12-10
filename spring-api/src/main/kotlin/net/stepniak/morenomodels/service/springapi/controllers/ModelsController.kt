@@ -1,6 +1,6 @@
 package net.stepniak.morenomodels.service.springapi.controllers
 
-import net.stepniak.morenomodels.service.generated.ModelsApiController
+import net.stepniak.morenomodels.service.generated.ModelsApi
 import net.stepniak.morenomodels.service.generated.model.*
 import net.stepniak.morenomodels.service.springapi.entity.ModelEntity
 import net.stepniak.morenomodels.service.springapi.repositories.ModelFilters
@@ -10,10 +10,9 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import javax.validation.Valid
 
 @RestController
-class ModelsController(val modelsService: ModelsService) : ModelsApiController() {
+class ModelsController(val modelsService: ModelsService) : ModelsApi {
     override fun listModels(
         @RequestParam("nextToken", required = false) nextToken: String?,
         @RequestParam("pageSize", required = false) pageSize: Int?,
