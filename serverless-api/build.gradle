@@ -2,7 +2,7 @@ plugins {
   id 'java'
   id 'io.quarkus' version "${quarkusPluginVersion}"
 
-  id 'org.openapi.generator' version '5.1.1'
+  id 'org.openapi.generator' version '6.2.1'
 }
 
 group = 'net.stepniak.morenomodels.serviceserverless'
@@ -41,9 +41,15 @@ openApiGenerate {
   apiPackage.set("net.stepniak.morenomodels.serviceserverless.generated")
   modelPackage.set("net.stepniak.morenomodels.serviceserverless.generated.model")
 
+  generateModelTests = false
+  generateModelDocumentation = false
+  generateApiTests = false
+  generateApiDocumentation = false
+
   configOptions = [
       useSwaggerAnnotations: "false",
-      interfaceOnly: "true"
+      interfaceOnly: "true",
+      generateBuilders: "true"
   ]
 }
 
