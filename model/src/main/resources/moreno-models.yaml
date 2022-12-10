@@ -47,10 +47,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-      x-amazon-apigateway-integration:
-        uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:MorenoModelsHandler/invocations'
-        httpMethod: "POST"
-        type: "aws_proxy"
     post:
       operationId: createPhoto
       summary: Creates a photo disassociated with any entity and returns upload URL.
@@ -74,10 +70,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-      x-amazon-apigateway-integration:
-        uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:MorenoModelsHandler/invocations'
-        httpMethod: "POST"
-        type: "aws_proxy"
   /photos/{photoSlug}:
     parameters:
       - name: photoSlug
@@ -185,10 +177,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-      x-amazon-apigateway-integration:
-        uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:MorenoModelsHandler/invocations'
-        httpMethod: "POST"
-        type: "aws_proxy"
   /models:
     get:
       operationId: listModels
@@ -231,10 +219,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-      x-amazon-apigateway-integration:
-        uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:MorenoModelsHandler/invocations'
-        httpMethod: "POST"
-        type: "aws_proxy"
     post:
       operationId: createModel
       summary: Create a new model
@@ -258,10 +242,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-      x-amazon-apigateway-integration:
-        uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:MorenoModelsHandler/invocations'
-        httpMethod: "POST"
-        type: "aws_proxy"
   /models/{modelSlug}:
     parameters:
       - name: modelSlug
@@ -292,10 +272,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-      x-amazon-apigateway-integration:
-        uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:MorenoModelsHandler/invocations'
-        httpMethod: "POST"
-        type: "aws_proxy"
     delete:
       operationId: archiveModel
       summary: Marks model as archived or completely deletes it from the application
@@ -354,10 +330,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-      x-amazon-apigateway-integration:
-        uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:MorenoModelsHandler/invocations'
-        httpMethod: "POST"
-        type: "aws_proxy"
 components:
   schemas:
     Id:
