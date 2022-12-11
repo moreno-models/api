@@ -5,22 +5,34 @@ import * as apigw from "aws-cdk-lib/aws-apigateway";
 import * as iam from 'aws-cdk-lib/aws-iam';
 import {integrateApiWithLambda} from "./openapi-integration";
 import {Duration} from "aws-cdk-lib";
+import {PolicyStatement} from "aws-cdk-lib/aws-iam";
 
 export class ServiceStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
+
+        // get it from a stack?
+        const secretArn = 'redacted';
 
         const lambdaService = new lambda.Function(this, 'MorenoModelsService', {
             functionName: 'MorenoModelsHandler',
             runtime: lambda.Runtime.JAVA_11,
             handler: 'io.quarkus.amazon.lambda.runtime.QuarkusStreamHandler::handleRequest',
             code: lambda.Code.fromAsset('../build/function.zip'),
-            memorySize: 512,
-            timeout: Duration.seconds(25),
+            memorySize: 1024,
+            timeout: Duration.minutes(2),
             environment: {
-                QUARKUS_DATASOURCE_JDBC_URL: 'jdbc:postgresql://172.17.0.1:5432/morenomodels'
+                QUARKUS_DATASOURCE_CREDENTIALS_PROVIDER: 'aws-secrets-manager',
+                // JDBC URL from secret?
+                QUARKUS_DATASOURCE_JDBC_URL: 'jdbc:postgresql://redacted:5432/morenomodels',
+                AWS_SECRETS_MANAGER_SECRET_ARN: secretArn
             }
         });
+
+        lambdaService.addToRolePolicy(new PolicyStatement({
+            resources: [secretArn],
+            actions: ['secretsmanager:GetSecretValue']
+        }));
 
         const api = new apigw.SpecRestApi(this, 'MorenoAPISpecification', {
             restApiName: 'MorenoModels',

@@ -35,7 +35,7 @@ public class ModelsResource implements ModelsApi {
     }
 
     @Override
-    @Transactional
+//    @Transactional
     public Models listModels(String nextToken, Integer pageSize, Boolean showArchived, String givenName) {
         List<Model> models = modelRepository.listAllModels()
                 .stream().map(m ->

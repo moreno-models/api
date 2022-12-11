@@ -15,3 +15,4 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
 
 * `npm run build && cdk synth`
 * `sam local start-api -t ./cdk.out/ServiceStack.template.json --warm-containers=EAGER`
+* `rm -rf cdk.out && npm run build && cdk synth && cdk deploy ServiceStack`
