@@ -39,6 +39,8 @@ export class StorageStack extends cdk.Stack {
                     subnetType: ec2.SubnetType.PUBLIC,
                 }),
             },
+            defaultDatabaseName: 'morenomodels',
+            clusterIdentifier: 'morenomodels',
             port: 5432,
         })
 
