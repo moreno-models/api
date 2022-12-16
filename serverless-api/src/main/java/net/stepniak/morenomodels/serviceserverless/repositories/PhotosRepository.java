@@ -86,7 +86,7 @@ public class PhotosRepository {
             condition = condition.and(Tables.PHOTOS.ARCHIVED.eq(false));
         }
         if (photosFilters.getModelSlug() != null) {
-            ModelsRecord model = modelsRepository.findByModelSlug(photosFilters.getModelSlug())
+            ModelsRecord model = modelsRepository.findByModelSlug(photosFilters.getModelSlug(), baseData.configuration())
                     .orElseThrow(() -> new NotFoundException(String.format(
                             "Model of slug: [%s] does not exist and cannot be filtered by",
                             photosFilters.getModelSlug()
@@ -119,7 +119,7 @@ public class PhotosRepository {
         photosRecord.setPhotoSlug(newPhoto.getPhotoSlug());
 
         if (newPhoto.getModelSlug() != null) {
-            ModelsRecord model = modelsRepository.findByModelSlug(newPhoto.getModelSlug())
+            ModelsRecord model = modelsRepository.findByModelSlug(newPhoto.getModelSlug(), configuration)
                     .orElseThrow(() -> new NotFoundException(String.format(
                             "Model of slug: [%s] does not exist and cannot be assigned to a photo.",
                             newPhoto.getModelSlug()

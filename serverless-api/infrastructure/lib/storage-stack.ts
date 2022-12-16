@@ -7,6 +7,8 @@ import {CfnDBCluster} from "aws-cdk-lib/aws-rds";
 
 
 export class StorageStack extends cdk.Stack {
+    public readonly dbCluster: rds.DatabaseCluster;
+
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
 
@@ -24,7 +26,7 @@ export class StorageStack extends cdk.Stack {
         dbSecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(5432), 'Allow internet to read / write to aurora')
 
         // Full spec https://github.com/aws/aws-cdk/issues/20197#issuecomment-1117555047
-        const dbCluster = new rds.DatabaseCluster(this, 'DbCluster', {
+        this.dbCluster = new rds.DatabaseCluster(this, 'DbCluster', {
             engine: rds.DatabaseClusterEngine.auroraPostgres({
                 version: rds.AuroraPostgresEngineVersion.VER_13_6,
             }),
@@ -44,7 +46,7 @@ export class StorageStack extends cdk.Stack {
             port: 5432,
         })
 
-        Aspects.of(dbCluster).add({
+        Aspects.of(this.dbCluster).add({
             visit(node) {
                 if (node instanceof CfnDBCluster) {
                     node.serverlessV2ScalingConfiguration = {

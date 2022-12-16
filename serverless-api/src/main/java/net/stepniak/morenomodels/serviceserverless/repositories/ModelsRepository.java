@@ -123,7 +123,7 @@ public class ModelsRepository {
         return findByModelSlug(newModel.getModelSlug(), configuration);
     }
 
-    private Optional<ModelsRecord> findByModelSlug(String modelSlug, Configuration configuration) {
+     Optional<ModelsRecord> findByModelSlug(String modelSlug, Configuration configuration) {
         Result<ModelsRecord> record = DSL.using(configuration)
                 .selectFrom(Tables.MODELS)
                 .where(Tables.MODELS.MODEL_SLUG.eq(modelSlug))

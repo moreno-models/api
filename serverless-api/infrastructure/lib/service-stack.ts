@@ -7,18 +7,17 @@ import {integrateApiWithLambda} from "./openapi-integration";
 import {Duration} from "aws-cdk-lib";
 import {PolicyStatement} from "aws-cdk-lib/aws-iam";
 import * as s3 from "aws-cdk-lib/aws-s3";
+import * as rds from 'aws-cdk-lib/aws-rds';
 
 
 export interface ServiceStackProps extends cdk.StackProps {
     photoBucket: s3.Bucket
+    auroraCluster: rds.DatabaseCluster,
 }
 
 export class ServiceStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: ServiceStackProps) {
         super(scope, id, props);
-
-        // get it from a stack?
-        const secretArn = 'redacted';
 
         const lambdaService = new lambda.Function(this, 'MorenoModelsService', {
             functionName: 'MorenoModelsHandler',
@@ -29,14 +28,15 @@ export class ServiceStack extends cdk.Stack {
             timeout: Duration.minutes(2),
             environment: {
                 QUARKUS_DATASOURCE_CREDENTIALS_PROVIDER: 'aws-secrets-manager',
-                // JDBC URL from secret?
-                QUARKUS_DATASOURCE_JDBC_URL: 'jdbc:postgresql://redacted:5432/morenomodels',
-                AWS_SECRETS_MANAGER_SECRET_ARN: secretArn
+                QUARKUS_DATASOURCE_JDBC_URL: `jdbc:postgresql://${props.auroraCluster.clusterEndpoint.socketAddress}/morenomodels`,
+                AWS_SECRETS_MANAGER_SECRET_ARN: props.auroraCluster.secret!.secretArn!,
+                BUCKET_NAME: props.photoBucket.bucketName,
             }
         });
 
+
         lambdaService.addToRolePolicy(new PolicyStatement({
-            resources: [secretArn],
+            resources: [props.auroraCluster.secret?.secretArn!],
             actions: ['secretsmanager:GetSecretValue']
         }));
 
