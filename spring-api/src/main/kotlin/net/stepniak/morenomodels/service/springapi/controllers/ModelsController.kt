@@ -49,7 +49,7 @@ class ModelsController(val modelsService: ModelsService) : ModelsApi {
         @RequestParam("delete", required = false) delete: Boolean?
     ): ResponseEntity<Unit> {
         modelsService.archiveModel(modelSlug, delete ?: false)
-        return ResponseEntity.ok(Unit)
+        return ResponseEntity.ok().build();
     }
 
     override fun createModel(@RequestBody newModel: NewModel): ResponseEntity<Model> {

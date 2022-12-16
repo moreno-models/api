@@ -50,7 +50,7 @@ class PhotosController(
         @RequestParam("delete", required = false) delete: Boolean?
     ): ResponseEntity<Unit> {
         photosService.archivePhoto(photoSlug, delete ?: false)
-        return ResponseEntity.ok(Unit)
+        return ResponseEntity.ok().build();
     }
 
     override fun getPhoto(@PathVariable("photoSlug") photoSlug: String): ResponseEntity<Photo> {
