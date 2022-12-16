@@ -1,53 +1,90 @@
 package net.stepniak.morenomodels.serviceserverless;
 
+import net.stepniak.morenomodels.serviceserverless.exceptions.NotFoundException;
 import net.stepniak.morenomodels.serviceserverless.generated.ModelsApi;
-import net.stepniak.morenomodels.serviceserverless.generated.model.Model;
-import net.stepniak.morenomodels.serviceserverless.generated.model.Models;
-import net.stepniak.morenomodels.serviceserverless.generated.model.NewModel;
-import net.stepniak.morenomodels.serviceserverless.generated.model.UpdatableModel;
-import net.stepniak.morenomodels.serviceserverless.repository.ModelRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.stepniak.morenomodels.serviceserverless.generated.model.*;
+import net.stepniak.morenomodels.serviceserverless.repositories.ModelsRepository;
+import net.stepniak.morenomodels.serviceserverless.tables.records.ModelsRecord;
 
 import javax.inject.Inject;
-import javax.transaction.Transactional;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class ModelsResource implements ModelsApi {
-    private final Logger log = LoggerFactory.getLogger(ModelsResource.class);
     @Inject
-    ModelRepository modelRepository;
+    ModelsRepository modelsRepository;
 
     @Override
     public void archiveModel(String modelSlug, Boolean delete) {
-
+        if (delete != null && delete) {
+            modelsRepository.deleteByModelSlug(modelSlug)
+                    .orElseThrow(() -> new NotFoundException(
+                            String.format("Model with slug [%s] not found", modelSlug)
+                    ));
+        } else {
+            modelsRepository.update(modelSlug, UpdatableModel.builder()
+                    .archived(true)
+                    .build()
+            );
+        }
     }
 
     @Override
     public Model createModel(NewModel newModel) {
-        return null;
+        return toApiModel(modelsRepository.createModel(newModel));
     }
 
     @Override
     public Model getModel(String modelSlug) {
-        return null;
+        return modelsRepository.findByModelSlug(modelSlug)
+                .map(ModelsResource::toApiModel)
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Model with slug [%s] not found", modelSlug)
+                ));
     }
 
     @Override
-//    @Transactional
     public Models listModels(String nextToken, Integer pageSize, Boolean showArchived, String givenName) {
-        List<Model> models = modelRepository.listAllModels()
-                .stream().map(m ->
-                        Model.builder().modelId(m.getModelId()).build()
-                )
-                .collect(Collectors.toList());
+        if (pageSize == null) {
+            pageSize = 20;
+        }
+        ModelsRepository.ModelsPage page = modelsRepository.list(
+                nextToken,
+                pageSize,
+                ModelsRepository.ModelsFilters.builder()
+                        .showArchived(showArchived)
+                        .givenName(givenName)
+                        .build()
+        );
 
-        return Models.builder().items(models).build();
+        return Models.builder()
+                .items(page.getModels().stream().map(ModelsResource::toApiModel).collect(Collectors.toList()))
+                .metadata(PaginationMetadata.builder()
+                        .nextToken(page.getNextToken())
+                        .build()
+                ).build();
     }
 
     @Override
     public Model updateModel(String modelSlug, UpdatableModel updatableModel) {
-        return null;
+        return modelsRepository.update(modelSlug, updatableModel)
+                .map(ModelsResource::toApiModel)
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Model [%s] was deleted while being updated", modelSlug)
+                ));
+    }
+
+    private static Model toApiModel(ModelsRecord r) {
+        return Model.builder()
+                .modelId(r.getModelId())
+                .modelSlug(r.getModelSlug())
+                .familyName(r.getFamilyName())
+                .givenName(r.getGivenName())
+                .archived(r.getArchived())
+                .height(r.getHeight())
+                .eyeColor(r.getEyeColor() != null ? EyeColor.fromValue(r.getEyeColor()) : null)
+                .version(r.getVersion())
+                .updated(r.getUpdated())
+                .created(r.getCreated())
+                .build();
     }
 }

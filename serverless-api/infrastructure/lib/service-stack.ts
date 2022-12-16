@@ -6,9 +6,15 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import {integrateApiWithLambda} from "./openapi-integration";
 import {Duration} from "aws-cdk-lib";
 import {PolicyStatement} from "aws-cdk-lib/aws-iam";
+import * as s3 from "aws-cdk-lib/aws-s3";
+
+
+export interface ServiceStackProps extends cdk.StackProps {
+    photoBucket: s3.Bucket
+}
 
 export class ServiceStack extends cdk.Stack {
-    constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+    constructor(scope: Construct, id: string, props: ServiceStackProps) {
         super(scope, id, props);
 
         // get it from a stack?
@@ -33,6 +39,9 @@ export class ServiceStack extends cdk.Stack {
             resources: [secretArn],
             actions: ['secretsmanager:GetSecretValue']
         }));
+
+        props.photoBucket.grantReadWrite(lambdaService.grantPrincipal);
+        props.photoBucket.grantDelete(lambdaService.grantPrincipal);
 
         const api = new apigw.SpecRestApi(this, 'MorenoAPISpecification', {
             restApiName: 'MorenoModels',

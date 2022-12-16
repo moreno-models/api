@@ -356,6 +356,12 @@ components:
     URI:
       description: The uri of a resource.
       type: string
+    FileName:
+      description: Human readable identifier.
+      type: string
+      pattern: '^(.*)\.(jpg|JPEG|JPG|PNG|png)$'
+      minLength: 1
+      maxLength: 100
     Slug:
       description: Human readable identifier.
       type: string
@@ -454,7 +460,10 @@ components:
       type: object
       required:
         - photoSlug
+        - fileName
       properties:
+        fileName:
+          $ref: '#/components/schemas/FileName'
         photoSlug:
           $ref: '#/components/schemas/Slug'
         modelSlug:
