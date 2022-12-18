@@ -1,6 +1,7 @@
 from locust import FastHttpUser, task, between
 from random import choice
 from uuid import uuid4
+import time
 import gevent
 
 big_photo_name = "assets/big-photo.jpg"
@@ -26,9 +27,33 @@ class ModelAdmin(FastHttpUser):
     family_names = ['Smith', 'Kowalski', 'Nowak', 'Sanchez', 'Bjornson', 'Perez']
     eye_colors = [None, 'blue', 'green', 'brown', 'gray']
     height = (150, 200)
-    wait_time = between(30, 60)
+    # TODO: to be adjusted.
+    wait_time = between(30, 500)
     # 1 admins
-    fixed_count = 1
+    # fixed_count = 1
+
+    def download_photo(self, uri):
+        if uri is None:
+            return
+        print(f"Download photo of uri: {uri}")
+        # Downloading the photo.
+        with self.client.get(uri, name="/download-photo") as response:
+            content = response.content
+
+    def create_photo(self, photo_slug, file_name, model_slug):
+        with self.rest("POST", "/photos", json={"photoSlug": photo_slug, "modelSlug": model_slug, "fileName": file_name}) as response:
+            if response.js is None:
+                pass
+            created_photo = response.js
+
+            self.client.put(created_photo["uploadUri"], data = photos[file_name], headers = {"Content-Type": content_types[file_name]}, name="/upload-photo")
+
+    def download_model_photos(self, model_slug):
+        with self.rest("GET", f"/photos?modelSlug={model_slug}&pageSize=10", name="/photos?modelSlug=") as response:
+            pool = gevent.pool.Pool()
+            for item in response.js["items"]:
+                pool.spawn(self.download_photo, item["uri"])
+            pool.join()
 
 
     # ## Task -> Create a model
@@ -38,15 +63,6 @@ class ModelAdmin(FastHttpUser):
     # List models and find that it was displayed.
     @task
     def create_model(self):
-        def create_photo(photo_slug, file_name, model_slug):
-            with self.rest("POST", "/photos", json={"photoSlug": photo_slug, "modelSlug": model_slug, "fileName": file_name}) as response:
-                if response.js is None:
-                    pass
-                created_photo = response.js
-
-                self.client.put(created_photo["uploadUri"], data = photos[file_name], headers = {"Content-Type": content_types[file_name]})
-
-
         # Before getting to model create, we need to see a list of models.
         self.client.get('/models')
 
@@ -70,49 +86,71 @@ class ModelAdmin(FastHttpUser):
             if response.js is None:
                 pass
             created_model = response.js
-            print(created_model)
             # Make sure they don't collide.
+
+            # 10 seconds to select the photos.
+            time.sleep(10)
 
             pool = gevent.pool.Pool()
             for photo_id in range(5):
                 photo_slug = f"{model_slug}-{photo_id}"
                 file_name = choice([big_photo_name, small_photo_name])
-                pool.spawn(create_photo, photo_slug, file_name, model_slug)
+                pool.spawn(self.create_photo, photo_slug, file_name, model_slug)
             pool.join()
 
             # model was actually created
-            self.rest("GET", f"/models/{model_slug}")
-            # TODO: list models 
-            # TODO: list photos
-            
+            self.client.get(f"/models/{model_slug}", name="/models/{modelSlug}")
+            self.download_model_photos(model_slug)
 
+    # ## Task -> Browse all photos
+    # List at max 3 pages, of photos and download them.
+    @task(7)
+    def browse_all_photos(self):
+        seenPages = 0
+        while True:
+            nextToken = ""
+            with self.rest("GET", f"/photos?pageSize=10&nextToken={nextToken}", name="/photos/{all}") as response:
+                if response.js is None:
+                    pass
+                nextToken = response.js["metadata"]["nextToken"]
+                pool = gevent.pool.Pool()
+                for item in response.js["items"]:
+                    pool.spawn(self.download_photo, item["uri"])
+                pool.join()
+                seenPages += 1
+                # Wait 5 second to see the page.
+                time.sleep(5)
+            if nextToken is None or seenPages > 3:
+                break
 
     # ## Task -> Browse models and edit one
     # List all models (10 at a time)
     # Browse to random page (if there are pages)
     # Select a random model, get his details
     # List first top1 photos of a model
-    # Edit his height/eyecolor to random
+    # Edit his height to random
     # Upload a photo randomly
-    # @task
-    # def edit_model(self):
-    #     self.client.get("/models")
-    #     self.client.get("/photos")
+    @task(5)
+    def edit_model(self):        
+        with self.rest("GET", "/models?pageSize=10", name="/models") as response:
+            # Give 5 seconds to decide which model
+            time.sleep(5)
+            if len(response.js['items']) == 0:
+                return
 
-    # ## Task -> Browse models and find by name and show details
-    # List all models (10 at a time)
-    # Filter by given name (Konrad, Kacper, Kamil, Matthew, Elijah, Zosia, Zuzia, Karolina, Ludmiła, dxdd)
-    # Select one (if there are any)
-    # List the photos and the details
-    # @task
-    # def browse_model_with_filtering(self):
-    #     self.client.get('xd')
+            selected_model = choice(response.js["items"])
+
+            with self.rest("GET", f"/models/{selected_model['modelSlug']}", name="/models/{modelSlug}") as response:
+                self.download_model_photos(selected_model['modelSlug'])
+                # Look at photos...
+                time.sleep(10) 
+                actions = ['height', 'photo']
+                action = choice(actions)
+                if action == 'height':
+                    with self.rest("PUT", f"/models/{selected_model['modelSlug']}", name="/models/{modelSlug}", json={"version": selected_model["version"], "height": choice(range(self.height[0], self.height[1]))}) as r:
+                        pass
+                elif action == 'photo':
+                    self.create_photo(f"{selected_model['modelSlug']}-{str(uuid4())[:5]}", choice([big_photo_name, small_photo_name]), selected_model['modelSlug'])
+                # Give 10 seconds to read the details and photos
 
 
-    # ## Task -> Browse all photos
-    # List all photos
-    # Download all of them
-    # Some pages
-    # @task
-    # def browse_all_photos(self):
-    #     print("xddd")
