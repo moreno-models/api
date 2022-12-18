@@ -21,6 +21,80 @@ content_types = {
     small_photo_name: "image/jpg"
 }
 
+class ModelVisitor(FastHttpUser):
+    wait_time = between(20, 120)
+    # TODO: when to kill the user? LoadTestStrategy -> look at the stats in the embassy
+
+    def download_model_photos(self, model_slug):
+        with self.rest("GET", f"/photos?modelSlug={model_slug}&pageSize=10", name="/photos?modelSlug=") as response:
+            pool = gevent.pool.Pool()
+            for item in response.js["items"]:
+                pool.spawn(self.download_photo, item["uri"])
+            pool.join()
+
+    def download_photo(self, uri):
+        if uri is None:
+            return
+        print(f"Download photo of uri: {uri}")
+        # Downloading the photo.
+        with self.client.get(uri, name="/download-photo") as response:
+            content = response.content
+
+    def front_page(self, max_pages=1):
+        seenPages = 0
+        while True:
+            nextToken = ""
+            with self.rest("GET", f"/photos?pageSize=20&nextToken={nextToken}", name="/photos/{all}") as response:
+                if response.js is None:
+                    pass
+                nextToken = response.js["metadata"]["nextToken"]
+                pool = gevent.pool.Pool()
+                for item in response.js["items"]:
+                    pool.spawn(self.download_photo, item["uri"])
+                pool.join()
+                seenPages += 1
+                # Wait 5 second to see the page.
+                time.sleep(5)
+            if nextToken is None or seenPages >= max_pages:
+                break
+
+
+    # ## Task -> Go to the front page, browse recent photos. max 5 pages.
+    @task(10)
+    def browse_all_photos(self):
+        self.front_page(choice(range(1, 5)))
+
+    # ## Task -> Go to the front page, go to the models, browse models.
+    # Browse random num of models on each page.
+    @task
+    def browse_some_models(self):
+        self.front_page(1)
+
+        max_pages = choice(range(1, 5))
+        seenPages = 0
+        while True:
+            nextToken = ""
+            with self.rest("GET", f"/models?pageSize=10&nextToken={nextToken}", name="/models") as response:
+                # Give 5 seconds to decide which model
+                time.sleep(5)
+                if len(response.js['items']) == 0:
+                    return
+
+                for _ in range(choice(range(1, 5))):
+                    selected_model = choice(response.js["items"])
+                    with self.rest("GET", f"/models/{selected_model['modelSlug']}", name="/models/{modelSlug}"):
+                        self.download_model_photos(selected_model['modelSlug'])
+                        # Look at photos...
+                        time.sleep(10) 
+
+                nextToken = response.js['metadata']['nextToken']
+
+            seenPages += 1
+
+            if seenPages >= max_pages or nextToken is None:
+                break
+
+
 
 class ModelAdmin(FastHttpUser):
     given_names = ['Konrad', 'Kacper', 'Wiktor', 'Kamil', 'Matthew', 'Elijah', 'Julia', 'Zosia', 'Zuzia', 'Weronika']
@@ -28,9 +102,9 @@ class ModelAdmin(FastHttpUser):
     eye_colors = [None, 'blue', 'green', 'brown', 'gray']
     height = (150, 200)
     # TODO: to be adjusted.
-    wait_time = between(30, 500)
+    wait_time = between(5, 10)
     # 1 admins
-    # fixed_count = 1
+    fixed_count = 1
 
     def download_photo(self, uri):
         if uri is None:
