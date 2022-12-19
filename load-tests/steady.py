@@ -22,8 +22,9 @@ class Steady(LoadTestShape):
     minute = 60
     minutes_in_hour = 60
     flat_first_users = 20
-    peak_one_end = 3 * minute
+    peak_one_end = 4 * minute
     flat_two_start = 4 * minute
+    peak_two_start = 5 * minute
     peak_two_end = 7 * minute
     flat_two_users = 10
 
@@ -36,10 +37,10 @@ class Steady(LoadTestShape):
         if run_time < self.time_limit:
             if run_time < self.peak_one_end:
                 user_count = self.flat_first_users + self.peak_one_users * math.e ** -((run_time - 3 * self.minute) / 40) ** 2
-            elif run_time <= self.flat_two_start:
-                user_count = 0
+            elif run_time >= self.flat_two_start and run_time <= self.peak_two_start:
+                return (0, 5.0)
             elif run_time <= self.peak_two_end:
-                user_count = self.flat_two_users + self.peak_two_users * math.e ** -((run_time - 8 * self.minute) / 30) ** 2
+                user_count = self.flat_two_users + self.peak_two_users * math.e ** -((run_time - 6 * self.minute) / 30) ** 2
             else:
                 user_count = self.flat_three_users
             

@@ -22,8 +22,7 @@ content_types = {
 }
 
 class ModelVisitor(FastHttpUser):
-    wait_time = between(20, 120)
-    # TODO: when to kill the user? LoadTestStrategy -> look at the stats in the embassy
+    wait_time = between(30, 120)
 
     def download_model_photos(self, model_slug):
         with self.rest("GET", f"/photos?modelSlug={model_slug}&pageSize=10", name="/photos?modelSlug=") as response:
@@ -85,7 +84,6 @@ class ModelVisitor(FastHttpUser):
                     with self.rest("GET", f"/models/{selected_model['modelSlug']}", name="/models/{modelSlug}"):
                         self.download_model_photos(selected_model['modelSlug'])
                         # Look at photos...
-                        time.sleep(10) 
 
                 nextToken = response.js['metadata']['nextToken']
 
@@ -97,6 +95,8 @@ class ModelVisitor(FastHttpUser):
 
 
 class ModelAdmin(FastHttpUser):
+    max_retries = 3
+
     given_names = ['Konrad', 'Kacper', 'Wiktor', 'Kamil', 'Matthew', 'Elijah', 'Julia', 'Zosia', 'Zuzia', 'Weronika']
     family_names = ['Smith', 'Kowalski', 'Nowak', 'Sanchez', 'Bjornson', 'Perez']
     eye_colors = [None, 'blue', 'green', 'brown', 'gray']
@@ -104,7 +104,7 @@ class ModelAdmin(FastHttpUser):
     # TODO: to be adjusted.
     wait_time = between(5, 10)
     # 1 admins
-    fixed_count = 1
+    fixed_count = 2
 
     def download_photo(self, uri):
         if uri is None:
@@ -178,7 +178,7 @@ class ModelAdmin(FastHttpUser):
 
     # ## Task -> Browse all photos
     # List at max 3 pages, of photos and download them.
-    @task(7)
+    @task(5)
     def browse_all_photos(self):
         seenPages = 0
         while True:
@@ -204,7 +204,7 @@ class ModelAdmin(FastHttpUser):
     # List first top1 photos of a model
     # Edit his height to random
     # Upload a photo randomly
-    @task(5)
+    @task(2)
     def edit_model(self):        
         with self.rest("GET", "/models?pageSize=10", name="/models") as response:
             # Give 5 seconds to decide which model
