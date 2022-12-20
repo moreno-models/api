@@ -3,47 +3,45 @@ from locust import HttpUser, TaskSet, task, constant
 from locust import LoadTestShape
 
 
-class Steady(LoadTestShape):
-    """
-        3h od startu -> 20 użytkowników
-        przez 30 minut, ramp-ump do 60 użytkowników
-        potem przez 2h nic
-        potem 10 użytkowników przez 1h
-        po 6h od startu
-        przez 60 minut, ramp-up do 40 użytkowników
-        potem ramp down do 20 użytkowników
-        potem już nic
-    """
-
+def f(run_time):
     peak_one_users = 60
     peak_two_users = 40
+
+    hour = 60 * 60
+    flat_one_users = 30
+    peak_one = 3 * hour
+    peak_two = 6 * hour
+    flat_two_users = 15
+
+    ramp_up = 1 * hour
+
+    if run_time < ramp_up:
+        user_count = min(0.01 * run_time, 25)
+    elif run_time < peak_one + hour:
+        user_count = flat_one_users + peak_one_users * math.e ** -((run_time - peak_one) / hour * 2) ** 2
+    elif run_time < peak_two + hour:
+        user_count = flat_two_users + peak_two_users * math.e ** -((run_time - peak_two) / hour * 3) ** 2
+    else:
+        user_count = 5
+
+    return round(user_count)
+
+
+
+
+class Steady(LoadTestShape):
     time_limit = 600
-
-    minute = 60
-    minutes_in_hour = 60
-    flat_first_users = 20
-    peak_one_end = 4 * minute
-    flat_two_start = 4 * minute
-    peak_two_start = 5 * minute
-    peak_two_end = 7 * minute
-    flat_two_users = 10
-
-    flat_three_users = 20
-
+    # TODO:
+    # Launch locust 
+    
+    # Notes:
+    # Upload photo does not work properly, because -> lambda.
 
     def tick(self):
         run_time = round(self.get_run_time())
 
         if run_time < self.time_limit:
-            if run_time < self.peak_one_end:
-                user_count = self.flat_first_users + self.peak_one_users * math.e ** -((run_time - 3 * self.minute) / 40) ** 2
-            elif run_time >= self.flat_two_start and run_time <= self.peak_two_start:
-                return (0, 5.0)
-            elif run_time <= self.peak_two_end:
-                user_count = self.flat_two_users + self.peak_two_users * math.e ** -((run_time - 6 * self.minute) / 30) ** 2
-            else:
-                user_count = self.flat_three_users
-            
+            user_count = f(run_time, self.time_limit)
             return (round(user_count), round(user_count))
         else:
             return None
