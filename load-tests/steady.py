@@ -42,6 +42,6 @@ class Steady(LoadTestShape):
 
         if run_time < self.time_limit:
             user_count = f(run_time)
-            return (round(user_count), round(user_count))
+            return (round(user_count), max(round(user_count), 1))
         else:
             return None
