@@ -30,10 +30,10 @@ def f(run_time):
 
 
 class Steady(LoadTestShape):
-    time_limit = 600
+    time_limit = 60 * 60 * 8
     # TODO:
     # Launch locust 
-    
+
     # Notes:
     # Upload photo does not work properly, because -> lambda.
 
