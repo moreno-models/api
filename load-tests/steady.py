@@ -39,9 +39,6 @@ class Steady(LoadTestShape):
 
     def tick(self):
         run_time = round(self.get_run_time())
+        user_count = f(run_time)
 
-        if run_time < self.time_limit:
-            user_count = f(run_time)
-            return (round(user_count), max(round(user_count), 1))
-        else:
-            return None
+        return (round(user_count), max(round(user_count), 1))
