@@ -84,6 +84,7 @@ class ModelVisitor(FastHttpUser):
                     with self.rest("GET", f"/models/{selected_model['modelSlug']}", name="/models/{modelSlug}"):
                         self.download_model_photos(selected_model['modelSlug'])
                         # Look at photos...
+                    time.sleep(5)
 
                 nextToken = response.js['metadata']['nextToken']
 
