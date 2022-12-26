@@ -1,8 +1,4 @@
-data:text/csv;charset=utf-8,Id,m0
-StatusCode,Complete
-Messages,
-Full label,eu-central-1:AWS/Lambda FunctionName:MorenoModelsHandler ConcurrentExecutions Sum 60
-Label,ConcurrentExecutions
+timestamp,concurrentExecutions
 2022/12/22 07:37:00,1
 2022/12/22 07:38:00,1
 2022/12/22 07:39:00,5

@@ -1,8 +1,4 @@
-data:text/csv;charset=utf-8,Id,metric_alias_metrics_view_graph_0
-StatusCode,Complete
-Messages,
-Full label,eu-central-1:AWS/Lambda FunctionName:MorenoModelsHandler Invocations Sum 60
-Label,Invocations
+timestamp,invocations
 2022/12/22 07:37:00,1
 2022/12/22 07:38:00,1
 2022/12/22 07:39:00,5
