@@ -3,6 +3,39 @@ from locust import HttpUser, TaskSet, task, constant
 from locust import LoadTestShape
 
 
+"""
+    170 użytkowników
+    500 odsłon
+
+    170 uż / 8 h = 21 użytkowników na 1h
+    500 odsłon / 8 h = 62 odsłon na 1h
+    # odsłona -> zadanie
+    # 1 administrator, zadanie co 10 minut
+    # 40 gości, zadanie co 5-10 minut
+    # =>
+    # 40 gości, 6-12 zadań na godzinę
+    # 40 użytkowników, robi 240-480 zadań na godzinę
+    # 8h -> 1920-3840 odsłon.
+
+
+
+    # Steady
+    # Administrator sobie klika co 2h przez 15min.
+    # Cały dzień ktoś wchodzi, średnio raz na 15minut.
+
+    # Burst
+    # Administrator sobie klika co 2h przez 15min.
+    # ALE, w pewnym momencie na stronę wchodzi X użytkowników na 15 minut.
+
+    # Wavy
+    # Administrator sobie klika co 2h przez 15min.
+    # Po 1h przychodzi fala A gości.
+    # Po 3h przychodzi fala B gości.
+    # Po 4h przychodzi fala C gości.
+    # Po 7h przychodzi fala D gości.
+"""
+
+
 def f(run_time):
     peak_one_users = 60
     peak_two_users = 40
