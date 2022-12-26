@@ -33,6 +33,8 @@ from locust import LoadTestShape
     # Po 3h przychodzi fala B gości.
     # Po 4h przychodzi fala C gości.
     # Po 7h przychodzi fala D gości.
+
+    # To zajmie 4dni, żeby uruchomić te testy.
 """
 
 
