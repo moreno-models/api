@@ -39,27 +39,27 @@ from locust import LoadTestShape
 
 
 def f(run_time):
-    peak_one_users = 60
-    peak_two_users = 40
+    # peak_one_users = 60
+    # peak_two_users = 40
 
-    hour = 60 * 60
-    flat_one_users = 30
-    peak_one = 3 * hour
-    peak_two = 6 * hour
-    flat_two_users = 15
+    # hour = 60 * 60
+    # flat_one_users = 30
+    # peak_one = 3 * hour
+    # peak_two = 6 * hour
+    # flat_two_users = 15
 
-    ramp_up = 1 * hour
+    # ramp_up = 1 * hour
 
-    if run_time < ramp_up:
-        user_count = min(0.01 * run_time, 25)
-    elif run_time < peak_one + hour:
-        user_count = flat_one_users + peak_one_users * math.e ** -((run_time - peak_one) / hour * 2) ** 2
-    elif run_time < peak_two + hour:
-        user_count = flat_two_users + peak_two_users * math.e ** -((run_time - peak_two) / hour * 3) ** 2
-    else:
-        user_count = 5
+    # if run_time < ramp_up:
+    #     user_count = min(0.01 * run_time, 25)
+    # elif run_time < peak_one + hour:
+    #     user_count = flat_one_users + peak_one_users * math.e ** -((run_time - peak_one) / hour * 2) ** 2
+    # elif run_time < peak_two + hour:
+    #     user_count = flat_two_users + peak_two_users * math.e ** -((run_time - peak_two) / hour * 3) ** 2
+    # else:
+    #     user_count = 5
 
-    return round(user_count)
+    return round(41)
 
 
 
