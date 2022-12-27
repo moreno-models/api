@@ -38,28 +38,37 @@ from locust import LoadTestShape
 """
 
 
+"""
+    1.5 h rośnie do 50, potem stała liczba użytkowników.
+    potem znowu 1.5h spada.
+"""
 def f(run_time):
     # peak_one_users = 60
     # peak_two_users = 40
 
-    # hour = 60 * 60
+    flat_users = 51
+    hour = 60 * 60
     # flat_one_users = 30
     # peak_one = 3 * hour
     # peak_two = 6 * hour
     # flat_two_users = 15
 
-    # ramp_up = 1 * hour
+    ramp_up = 1.8 * hour
+    ramp_down = 6.2 * hour
+    end_time = 8 * hour
 
-    # if run_time < ramp_up:
-    #     user_count = min(0.01 * run_time, 25)
+    if run_time < ramp_up:
+        user_count = min(0.008 * run_time, flat_users)
+    elif run_time > ramp_down:
+        user_count = max(min(flat_users, abs(-0.008 * (end_time - run_time))), 0)
     # elif run_time < peak_one + hour:
     #     user_count = flat_one_users + peak_one_users * math.e ** -((run_time - peak_one) / hour * 2) ** 2
     # elif run_time < peak_two + hour:
     #     user_count = flat_two_users + peak_two_users * math.e ** -((run_time - peak_two) / hour * 3) ** 2
-    # else:
-    #     user_count = 5
+    else:
+        user_count = flat_users
 
-    return round(41)
+    return round(user_count)
 
 
 
