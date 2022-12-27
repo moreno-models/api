@@ -6,6 +6,7 @@ import io.quarkus.arc.Unremovable;
 import io.quarkus.credentials.CredentialsProvider;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.logging.Logger;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
@@ -20,6 +21,7 @@ import java.util.Optional;
 @Unremovable
 @Named("aws-secrets-manager")
 public class SecretsManagerCredentialProvider implements CredentialsProvider {
+    private static final Logger LOG = Logger.getLogger(SecretsManagerCredentialProvider.class);
     private static final String PROVIDER_NAME = "aws-secrets-manager";
     @Inject
     SecretsManagerClient secretsManagerClient;
@@ -32,6 +34,8 @@ public class SecretsManagerCredentialProvider implements CredentialsProvider {
 
     @Override
     public Map<String, String> getCredentials(String credentialsProviderName) {
+        long startMillis = System.currentTimeMillis();
+        LOG.info("Getting credentials...");
         if (!credentialsProviderName.equals(PROVIDER_NAME)) {
             return null;
         }
@@ -48,6 +52,7 @@ public class SecretsManagerCredentialProvider implements CredentialsProvider {
         try {
             SecretModel secret = objectMapper.readValue(secretValueResponse.secretString(), SecretModel.class);
 
+            LOG.info("Got credentials in: [" + (System.currentTimeMillis() - startMillis) + "])");
             return Map.of(
                     USER_PROPERTY_NAME, secret.getUsername(),
                     PASSWORD_PROPERTY_NAME, secret.getPassword()
