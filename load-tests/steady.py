@@ -66,11 +66,6 @@ def f(run_time):
 
 class Steady(LoadTestShape):
     time_limit = 60 * 60 * 8
-    # TODO:
-    # Launch locust 
-
-    # Notes:
-    # Upload photo does not work properly, because -> lambda.
 
     def tick(self):
         run_time = round(self.get_run_time())

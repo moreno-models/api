@@ -4,25 +4,19 @@ from uuid import uuid4
 import time
 import gevent
 
-big_photo_name = "assets/big-photo.jpg"
-small_photo_name = "assets/small-photo.png"
-with open(big_photo_name, "rb") as f:
-    big_photo = f.read()
-with open(small_photo_name, "rb") as f:
-    small_photo = f.read()
+photos = {}
+content_types = {}
+photo_names = []
 
-photos = {
-    big_photo_name: big_photo,
-    small_photo_name: small_photo
-}
-
-content_types = {
-    big_photo_name: "image/png",
-    small_photo_name: "image/jpg"
-}
+for photo_id in range(1, 5 + 1):
+    file_name = f"assets/big-photo-{photo_id}.jpg"
+    photo_names.append(file_name)
+    with open(file_name, "rb") as f:
+        photos[file_name] = f.read()
+        content_types[file_name] = "image/jpg"
 
 class ModelVisitor(FastHttpUser):
-    wait_time = between(30, 120)
+    wait_time = between(5 * 60, 10 * 60)
 
     def download_model_photos(self, model_slug):
         with self.rest("GET", f"/photos?modelSlug={model_slug}&pageSize=10", name="/photos?modelSlug=") as response:
@@ -102,10 +96,9 @@ class ModelAdmin(FastHttpUser):
     family_names = ['Smith', 'Kowalski', 'Nowak', 'Sanchez', 'Bjornson', 'Perez']
     eye_colors = [None, 'blue', 'green', 'brown', 'gray']
     height = (150, 200)
-    # TODO: to be adjusted.
-    wait_time = between(5, 10)
+    wait_time = between(10 * 60, 11 * 60)
     # 1 admins
-    fixed_count = 2
+    fixed_count = 1
 
     def download_photo(self, uri):
         if uri is None:
@@ -169,7 +162,7 @@ class ModelAdmin(FastHttpUser):
             pool = gevent.pool.Pool()
             for photo_id in range(5):
                 photo_slug = f"{model_slug}-{photo_id}"
-                file_name = choice([big_photo_name, small_photo_name])
+                file_name = choice(photo_names)
                 pool.spawn(self.create_photo, photo_slug, file_name, model_slug)
             pool.join()
 
@@ -225,7 +218,7 @@ class ModelAdmin(FastHttpUser):
                     with self.rest("PUT", f"/models/{selected_model['modelSlug']}", name="/models/{modelSlug}", json={"version": selected_model["version"], "height": choice(range(self.height[0], self.height[1]))}) as r:
                         pass
                 elif action == 'photo':
-                    self.create_photo(f"{selected_model['modelSlug']}-{str(uuid4())[:5]}", choice([big_photo_name, small_photo_name]), selected_model['modelSlug'])
+                    self.create_photo(f"{selected_model['modelSlug']}-{str(uuid4())[:5]}", choice(photo_names), selected_model['modelSlug'])
                 # Give 10 seconds to read the details and photos
 
 
