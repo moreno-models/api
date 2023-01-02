@@ -72,18 +72,28 @@ class PhotosController(
         )
     }
 
+//    override fun uploadPhoto(@PathVariable("photoSlug") photoSlug: String, @RequestBody body: Resource): ResponseEntity<Photo> {
+//        try {
+//            ImageIO.createImageInputStream(body.inputStream).use {
+//                val readers = ImageIO.getImageReaders(it)
+//                val imageReader = readers.next()
+//                imageReader.input = it
+//                val format = imageReader.formatName
+//                val image = imageReader.read(0)
+//
+//                val photo = photosService.uploadPhoto(photoSlug, image, format)
+//                return ResponseEntity.ok(toApiModel(photo))
+//            }
+//        } catch (e: Exception) {
+//            LOG.warn("Tried to upload something which is not an image", e)
+//            throw NotImageException()
+//        }
+//    }
+
     override fun uploadPhoto(@PathVariable("photoSlug") photoSlug: String, @RequestBody body: Resource): ResponseEntity<Photo> {
         try {
-            ImageIO.createImageInputStream(body.inputStream).use {
-                val readers = ImageIO.getImageReaders(it)
-                val imageReader = readers.next()
-                imageReader.input = it
-                val format = imageReader.formatName
-                val image = imageReader.read(0)
-
-                val photo = photosService.uploadPhoto(photoSlug, image, format)
-                return ResponseEntity.ok(toApiModel(photo))
-            }
+            val photo = photosService.uploadPhoto(photoSlug, body.inputStream)
+            return ResponseEntity.ok(toApiModel(photo))
         } catch (e: Exception) {
             LOG.warn("Tried to upload something which is not an image", e)
             throw NotImageException()

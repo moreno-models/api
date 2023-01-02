@@ -8,10 +8,12 @@ import net.stepniak.morenomodels.service.springapi.repositories.ModelsRepository
 import net.stepniak.morenomodels.service.springapi.repositories.PhotoFilters
 import net.stepniak.morenomodels.service.springapi.repositories.PhotosPage
 import net.stepniak.morenomodels.service.springapi.repositories.PhotosRepository
+import org.apache.commons.io.FilenameUtils
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.awt.image.BufferedImage
 import java.io.File
+import java.io.InputStream
 import java.net.URI
 import java.time.OffsetDateTime
 import javax.imageio.ImageIO
@@ -56,6 +58,10 @@ class PhotosService(
         photo.photoSlug = newPhoto.photoSlug
         photo.version = 1
         photo.archived = false
+
+        val format = FilenameUtils.getExtension(newPhoto.fileName)
+        val imageBaseName = "${photo.photoSlug}.${format.lowercase()}"
+        photo.uri = "$imageBaseName"
         photo.model = if (newPhoto.modelSlug != null)  {
             val model = modelsRepository.findByModelSlug(newPhoto.modelSlug) ?: throw NotFoundException()
             model
@@ -66,17 +72,33 @@ class PhotosService(
         return photo
     }
 
+//    @Transactional
+//    fun uploadPhoto(photoSlug: String, image: BufferedImage, format: String): PhotoEntity {
+//        val photo = photosRepository.findByPhotoSlug(photoSlug) ?: throw NotFoundException()
+//
+//        val imageBaseName = "${photoSlug}.${format.lowercase()}"
+//        val outputFile = File("${storagePath}/$imageBaseName")
+//        ImageIO.write(image, format, outputFile)
+//
+//        photo.width = image.width
+//        photo.height = image.height
+//        photo.uri = "$imageBaseName"
+//        photo.updated = OffsetDateTime.now()
+//
+//        photosRepository.save(photo)
+//
+//        return photo
+//    }
+
     @Transactional
-    fun uploadPhoto(photoSlug: String, image: BufferedImage, format: String): PhotoEntity {
+    fun uploadPhoto(photoSlug: String, image: InputStream): PhotoEntity {
         val photo = photosRepository.findByPhotoSlug(photoSlug) ?: throw NotFoundException()
-
-        val imageBaseName = "${photoSlug}.${format.lowercase()}"
-        val outputFile = File("${storagePath}/$imageBaseName")
-        ImageIO.write(image, format, outputFile)
-
-        photo.width = image.width
-        photo.height = image.height
-        photo.uri = "$imageBaseName"
+        val outputFile = File("${storagePath}/${photo.uri!!}")
+        image.use {input ->
+            outputFile.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
         photo.updated = OffsetDateTime.now()
 
         photosRepository.save(photo)
