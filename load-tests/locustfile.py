@@ -30,7 +30,7 @@ class ModelVisitor(FastHttpUser):
             return
         print(f"Download photo of uri: {uri}")
         # Downloading the photo.
-        with self.client.get(uri, name="/download-photo") as response:
+        with self.client.get(uri, name="/download-photo", timeout=10) as response:
             content = response.content
 
     def front_page(self, max_pages=1):
@@ -105,7 +105,7 @@ class ModelAdmin(FastHttpUser):
             return
         print(f"Download photo of uri: {uri}")
         # Downloading the photo.
-        with self.client.get(uri, name="/download-photo") as response:
+        with self.client.get(uri, name="/download-photo", timeout=10) as response:
             content = response.content
 
     def create_photo(self, photo_slug, file_name, model_slug):
