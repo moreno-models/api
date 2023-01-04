@@ -28,7 +28,7 @@ class ModelVisitor(FastHttpUser):
     def download_photo(self, uri):
         if uri is None:
             return
-        print(f"Download photo of uri: {uri}")
+        # print(f"Download photo of uri: {uri}")
         # Downloading the photo.
         with self.client.get(uri, name="/download-photo") as response:
             content = response.content
