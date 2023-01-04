@@ -16,7 +16,7 @@ for photo_id in range(1, 5 + 1):
         content_types[file_name] = "image/jpg"
 
 class ModelVisitor(FastHttpUser):
-    wait_time = between(20, 40)
+    wait_time = between(5, 10)
 
     def download_model_photos(self, model_slug):
         with self.rest("GET", f"/photos?modelSlug={model_slug}&pageSize=10", name="/photos?modelSlug=") as response:
@@ -30,8 +30,8 @@ class ModelVisitor(FastHttpUser):
             return
         # print(f"Download photo of uri: {uri}")
         # Downloading the photo.
-        with self.client.get(uri, name="/download-photo") as response:
-            content = response.content
+        # with self.client.get(uri, name="/download-photo") as response:
+        #     content = response.content
 
     def front_page(self, max_pages=1):
         seenPages = 0
@@ -105,8 +105,8 @@ class ModelAdmin(FastHttpUser):
             return
         # print(f"Download photo of uri: {uri}")
         # Downloading the photo.
-        with self.client.get(uri, name="/download-photo") as response:
-            content = response.content
+        # with self.client.get(uri, name="/download-photo") as response:
+        #     content = response.content
 
     def create_photo(self, photo_slug, file_name, model_slug):
         with self.rest("POST", "/photos", json={"photoSlug": photo_slug, "modelSlug": model_slug, "fileName": file_name}) as response:
