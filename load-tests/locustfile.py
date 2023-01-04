@@ -16,7 +16,7 @@ for photo_id in range(1, 5 + 1):
         content_types[file_name] = "image/jpg"
 
 class ModelVisitor(FastHttpUser):
-    wait_time = between(5 * 60, 10 * 60)
+    wait_time = between(20, 40)
 
     def download_model_photos(self, model_slug):
         with self.rest("GET", f"/photos?modelSlug={model_slug}&pageSize=10", name="/photos?modelSlug=") as response:
