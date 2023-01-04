@@ -30,8 +30,8 @@ class ModelVisitor(FastHttpUser):
             return
         print(f"Download photo of uri: {uri}")
         # Downloading the photo.
-        # with self.client.get(uri, name="/download-photo", timeout=10) as response:
-        #     content = response.content
+        with self.client.get(uri, name="/download-photo") as response:
+            content = response.content
 
     def front_page(self, max_pages=1):
         seenPages = 0
@@ -103,10 +103,10 @@ class ModelAdmin(FastHttpUser):
     def download_photo(self, uri):
         if uri is None:
             return
-        print(f"Download photo of uri: {uri}")
+        # print(f"Download photo of uri: {uri}")
         # Downloading the photo.
-        # with self.client.get(uri, name="/download-photo", timeout=10) as response:
-        #     content = response.content
+        with self.client.get(uri, name="/download-photo") as response:
+            content = response.content
 
     def create_photo(self, photo_slug, file_name, model_slug):
         with self.rest("POST", "/photos", json={"photoSlug": photo_slug, "modelSlug": model_slug, "fileName": file_name}) as response:
