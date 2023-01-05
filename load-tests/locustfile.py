@@ -61,9 +61,10 @@ class ModelVisitor(FastHttpUser):
             nextToken = ""
             with self.rest("GET", f"/photos?pageSize=20&nextToken={nextToken}", name="/photos/{all}") as response:
                 if validate_response(response):
-                    nextToken = response.js["metadata"]["nextToken"]
+                    data = response.js
+                    nextToken = data["metadata"]["nextToken"]
                     pool = gevent.pool.Pool()
-                    for item in response.js["items"]:
+                    for item in data["items"]:
                         pool.spawn(self.download_photo, item["uri"])
                     pool.join()
                     seenPages += 1
@@ -92,18 +93,20 @@ class ModelVisitor(FastHttpUser):
                 if validate_response(response):
                     # Give 5 seconds to decide which model
                     time.sleep(5)
-                    if len(response.js['items']) == 0:
+                    data = response.js
+                    items = data['items']
+                    if len(items) == 0:
                         return
 
                     for _ in range(choice(range(1, 5))):
-                        selected_model = choice(response.js["items"])
+                        selected_model = choice(items)
                         with self.rest("GET", f"/models/{selected_model['modelSlug']}", name="/models/{modelSlug}") as response:
                             if validate_response(response):
                                 self.download_model_photos(selected_model['modelSlug'])
                             # Look at photos...
                         time.sleep(5)
 
-                    nextToken = response.js['metadata']['nextToken']
+                    nextToken = data['metadata']['nextToken']
 
             seenPages += 1
 
@@ -206,9 +209,10 @@ class ModelAdmin(FastHttpUser):
             nextToken = ""
             with self.rest("GET", f"/photos?pageSize=10&nextToken={nextToken}", name="/photos/{all}") as response:
                 if validate_response(response):
-                    nextToken = response.js["metadata"]["nextToken"]
+                    data = response.js
+                    nextToken = data["metadata"]["nextToken"]
                     pool = gevent.pool.Pool()
-                    for item in response.js["items"]:
+                    for item in data["items"]:
                         pool.spawn(self.download_photo, item["uri"])
                     pool.join()
                     seenPages += 1
@@ -230,10 +234,11 @@ class ModelAdmin(FastHttpUser):
             if validate_response(response):
                 # Give 5 seconds to decide which model
                 time.sleep(5)
-                if len(response.js['items']) == 0:
+                data = response.js
+                if len(data['items']) == 0:
                     return
 
-                selected_model = choice(response.js["items"])
+                selected_model = choice(data["items"])
 
                 with self.rest("GET", f"/models/{selected_model['modelSlug']}", name="/models/{modelSlug}") as response:
                     if validate_response(response):
