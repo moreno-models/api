@@ -1,8 +1,11 @@
+from typing import Optional
 from locust import FastHttpUser, task, between
 from random import choice
 from uuid import uuid4
 import time
 import gevent
+import logging
+
 
 photos = {}
 content_types = {}
@@ -13,8 +16,9 @@ GUEST_WAIT_TIME = between(5, 10)
 ADMIN_WAIT_TIME = between(10 * 60, 11 * 60)
 
 def validate_response(response):
+    logging.info(f"Type: [{response.request_meta['request_type']}] | Name: [{response.request_meta['name']}] | Time: [{response.request_meta['response_time']}] | Status: [{response.status_code}]")
     if response.status_code == 0:
-        response.failure("Request timed out or failed weirldy.")
+        response.failure("Request timed out or failed weidly.")
     elif response.request_meta["response_time"] > EXPECTED_TIME:
         response.failure("Request took too long.")
     else:
@@ -47,7 +51,7 @@ class ModelVisitor(FastHttpUser):
         # print(f"Download photo of uri: {uri}")
         # Downloading the photo.
         if DOWNLOAD_PHOTOS:
-            with self.client.get(uri, name="/download-photo") as response:
+            with self.client.get(uri, name="/download-photo", catch_response=True) as response:
                 validate_response(response)
                 content = response.content
 
@@ -93,8 +97,9 @@ class ModelVisitor(FastHttpUser):
 
                     for _ in range(choice(range(1, 5))):
                         selected_model = choice(response.js["items"])
-                        with self.rest("GET", f"/models/{selected_model['modelSlug']}", name="/models/{modelSlug}"):
-                            self.download_model_photos(selected_model['modelSlug'])
+                        with self.rest("GET", f"/models/{selected_model['modelSlug']}", name="/models/{modelSlug}") as response:
+                            if validate_response(response):
+                                self.download_model_photos(selected_model['modelSlug'])
                             # Look at photos...
                         time.sleep(5)
 
@@ -124,16 +129,17 @@ class ModelAdmin(FastHttpUser):
         # print(f"Download photo of uri: {uri}")
         # Downloading the photo.
         if DOWNLOAD_PHOTOS:
-            with self.client.get(uri, name="/download-photo") as response:
+            with self.client.get(uri, name="/download-photo", catch_response=True) as response:
                 validate_response(response)
                 content = response.content
 
     def create_photo(self, photo_slug, file_name, model_slug):
-        with self.rest("POST", "/photos", json={"photoSlug": photo_slug, "modelSlug": model_slug, "fileName": file_name}) as response:
+        with self.rest("POST", "/photos", name="/create-photo", json={"photoSlug": photo_slug, "modelSlug": model_slug, "fileName": file_name}) as response:
             if validate_response(response):
                 created_photo = response.js
 
-                self.client.put(created_photo["uploadUri"], data = photos[file_name], headers = {"Content-Type": content_types[file_name]}, name="/upload-photo")
+                with self.client.put(created_photo["uploadUri"], catch_response=True, data = photos[file_name], headers = {"Content-Type": content_types[file_name]}, name="/upload-photo") as response:
+                    validate_response(response)
 
     def download_model_photos(self, model_slug):
         with self.rest("GET", f"/photos?modelSlug={model_slug}&pageSize=10", name="/photos?modelSlug=") as response:
@@ -152,7 +158,8 @@ class ModelAdmin(FastHttpUser):
     @task
     def create_model(self):
         # Before getting to model create, we need to see a list of models.
-        self.client.get('/models')
+        with self.client.get('/models', catch_response=True) as response:
+            validate_response(response)
 
         session_id = str(uuid4())[:5]
 
@@ -170,7 +177,7 @@ class ModelAdmin(FastHttpUser):
             "eyeColor": eye_color,
             "height": height
         }
-        with self.rest("POST", "/models", json=body) as response:
+        with self.rest("POST", "/models", json=body, name="/create-model") as response:
             if validate_response(response):
                 created_model = response.js
                 # Make sure they don't collide.
@@ -186,7 +193,8 @@ class ModelAdmin(FastHttpUser):
                 pool.join()
 
                 # model was actually created
-                self.client.get(f"/models/{model_slug}", name="/models/{modelSlug}")
+                with self.client.get(f"/models/{model_slug}", name="/models/{modelSlug}", catch_response=True) as response:
+                    validate_response(response)
                 self.download_model_photos(model_slug)
 
     # ## Task -> Browse all photos
@@ -235,7 +243,8 @@ class ModelAdmin(FastHttpUser):
                         actions = ['height', 'photo']
                         action = choice(actions)
                         if action == 'height':
-                            with self.rest("PUT", f"/models/{selected_model['modelSlug']}", name="/models/{modelSlug}", json={"version": selected_model["version"], "height": choice(range(self.height[0], self.height[1]))}) as r:
+                            with self.rest("PUT", f"/models/{selected_model['modelSlug']}", name="/models/{modelSlug}", json={"version": selected_model["version"], "height": choice(range(self.height[0], self.height[1]))}) as repsonse:
+                                validate_response(response)
                                 pass
                         elif action == 'photo':
                             self.create_photo(f"{selected_model['modelSlug']}-{str(uuid4())[:5]}", choice(photo_names), selected_model['modelSlug'])
