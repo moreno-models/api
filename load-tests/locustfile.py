@@ -18,7 +18,7 @@ ADMIN_WAIT_TIME = between(10 * 60, 11 * 60)
 def validate_response(response):
     logging.info(f"Type: [{response.request_meta['request_type']}] | Name: [{response.request_meta['name']}] | Time: [{response.request_meta['response_time']}] | Status: [{response.status_code}]")
     if response.status_code == 0:
-        response.failure("Request timed out or failed weidly.")
+        response.failure("Request timed out or failed weirdly.")
     elif response.request_meta["response_time"] > EXPECTED_TIME:
         response.failure("Request took too long.")
     else:
