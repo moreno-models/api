@@ -102,7 +102,7 @@ export class StorageStack extends cdk.Stack {
                 if (node instanceof CfnDBCluster) {
                     node.serverlessV2ScalingConfiguration = {
                         minCapacity: 0.5,
-                        maxCapacity: 1,
+                        maxCapacity: 16,
                     }
                 }
             },

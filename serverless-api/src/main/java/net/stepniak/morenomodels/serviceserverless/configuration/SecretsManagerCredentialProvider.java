@@ -32,6 +32,9 @@ public class SecretsManagerCredentialProvider implements CredentialsProvider {
     @ConfigProperty(name = "aws-secrets-manager.secret-arn")
     Optional<String> secretArn;
 
+    @ConfigProperty(name = "aws-secrets-manager.secret-value")
+    Optional<String> secretValue;
+
     @Override
     public Map<String, String> getCredentials(String credentialsProviderName) {
         long startMillis = System.currentTimeMillis();
@@ -39,19 +42,26 @@ public class SecretsManagerCredentialProvider implements CredentialsProvider {
         if (!credentialsProviderName.equals(PROVIDER_NAME)) {
             return null;
         }
-        if (secretArn.isEmpty()) {
-            throw new RuntimeException("Tried to use SecretsManager Credential Provider "
-                    + " without providing the secret ARN.");
+        String jsonValue;
+        if (secretValue.isEmpty()) {
+            if (secretArn.isEmpty()) {
+                throw new RuntimeException("Tried to use SecretsManager Credential Provider "
+                        + " without providing the secret ARN or secret value");
+            } else {
+                GetSecretValueResponse secretValueResponse = secretsManagerClient
+                        .getSecretValue(GetSecretValueRequest.builder()
+                                .secretId(secretArn.get())
+                                .build()
+                        );
+                jsonValue = secretValueResponse.secretString();
+            }
+        } else {
+            jsonValue = secretValue.get();
         }
+        LOG.info("Got secret value: " + secretValue.get());
 
-        GetSecretValueResponse secretValueResponse = secretsManagerClient
-                .getSecretValue(GetSecretValueRequest.builder()
-                        .secretId(secretArn.get())
-                        .build()
-                );
         try {
-            SecretModel secret = objectMapper.readValue(secretValueResponse.secretString(), SecretModel.class);
-
+            SecretModel secret = objectMapper.readValue(jsonValue, SecretModel.class);
             LOG.info("Got credentials in: [" + (System.currentTimeMillis() - startMillis) + "])");
             return Map.of(
                     USER_PROPERTY_NAME, secret.getUsername(),

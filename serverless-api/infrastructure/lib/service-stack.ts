@@ -34,12 +34,24 @@ export class ServiceStack extends cdk.Stack {
                 QUARKUS_DATASOURCE_CREDENTIALS_PROVIDER: 'aws-secrets-manager',
                 QUARKUS_DATASOURCE_JDBC_URL: `jdbc:postgresql://${props.proxy.endpoint}:5432/morenomodels`,
                 AWS_SECRETS_MANAGER_SECRET_ARN: props.auroraCluster.secret!.secretArn!,
+                AWS_SECRETS_MANAGER_SECRET_VALUE: props.auroraCluster.secret!.secretValue.unsafeUnwrap(),
                 BUCKET_NAME: props.photoBucket.bucketName,
             },
             vpc: props.vpc,
             vpcSubnets: props.vpc.selectSubnets({
                 subnetType: SubnetType.PRIVATE_ISOLATED
             })
+        });
+
+        (lambdaService.node.defaultChild as lambda.CfnFunction).addPropertyOverride('SnapStart', {
+            ApplyOn: 'PublishedVersions',
+          });
+
+        // maybe iam authentication
+
+        const alias = new lambda.Alias(this, 'Alias', {
+            aliasName: 'Alias',
+            version: lambdaService.currentVersion,
         });
 
         lambdaService.addToRolePolicy(new PolicyStatement({
@@ -58,16 +70,18 @@ export class ServiceStack extends cdk.Stack {
                     {
                         region: this.region,
                         partition: this.partition,
-                        functionArn: lambdaService.functionArn
+                        functionArn: alias.functionArn,
                     }
                 )
             ),
         });
-
+        
         // Allow the Lambda to be called by any Rest API
-        lambdaService.addPermission('APIGWPermission', {
+        const apigPrincipal = {
             principal: new iam.ServicePrincipal('apigateway.amazonaws.com'),
             sourceArn: `${api.arnForExecuteApi('*', '/*', '*')}`
-        })
+        };
+        lambdaService.addPermission('APIGWPermission', apigPrincipal);
+        alias.addPermission('AliasAPIGWPermission', apigPrincipal);
     }
 }
