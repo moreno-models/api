@@ -58,7 +58,7 @@ public class SecretsManagerCredentialProvider implements CredentialsProvider {
         } else {
             jsonValue = secretValue.get();
         }
-        LOG.info("Got secret value: " + secretValue.get());
+        LOG.info("Got secret value: " + jsonValue);
 
         try {
             SecretModel secret = objectMapper.readValue(jsonValue, SecretModel.class);

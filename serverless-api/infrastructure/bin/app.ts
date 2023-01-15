@@ -4,10 +4,16 @@ import * as cdk from 'aws-cdk-lib';
 import { ServiceStack } from '../lib/service-stack';
 import {StorageStack} from "../lib/storage-stack";
 import {PhotoStorageStack} from "../lib/photo-storage-stack";
+import {ServiceStackWithoutProxy} from '../lib/service-stack-without-proxy';
 
 const app = new cdk.App();
 const photoStorage = new PhotoStorageStack(app, 'PhotoStorageStack');
 const storage = new StorageStack(app, 'StorageStack');
+new ServiceStackWithoutProxy(app, 'ServiceStackWithoutProxy', {
+  photoBucket: photoStorage.photoBucket,
+  auroraCluster: storage.dbCluster,
+  vpc: storage.vpc,
+});
 new ServiceStack(app, 'ServiceStack', {
     photoBucket: photoStorage.photoBucket,
     auroraCluster: storage.dbCluster,
