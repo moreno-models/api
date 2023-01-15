@@ -1,0 +1,9 @@
+[2023-01-13 19:46:33,647] load-test-1/INFO/locust.main: Starting web interface at http://0.0.0.0:8089 (accepting connections from all network interfaces)
+[2023-01-13 19:46:33,661] load-test-1/INFO/locust.main: Starting Locust 2.14.1
+[2023-01-13 19:46:37,114] load-test-1/INFO/locust.runners: Worker load-test-2_0ef1d6c781bc40a0bd33a7ef93a83aa2 (index 0) reported as ready. 1 workers connected.
+[2023-01-13 19:46:39,783] load-test-1/INFO/locust.runners: Worker load-test-3_3e2759b93a17423fb08c25adec9ba3df (index 1) reported as ready. 2 workers connected.
+[2023-01-13 19:46:45,085] load-test-1/INFO/locust.runners: Worker ip-172-31-18-133.eu-west-2.compute.internal_c5712b579ad046e0b1eabc1126ed9395 (index 2) reported as ready. 3 workers connected.
+[2023-01-13 19:48:43,687] load-test-1/INFO/locust.runners: Worker ip-172-31-19-174.eu-west-2.compute.internal_70e83fe1c0e64a99a2bdad45c02efd59 (index 3) reported as ready. 4 workers connected.
+[2023-01-13 19:50:03,997] load-test-1/INFO/locust.runners: Sending spawn jobs of 10000 users at 10.00 spawn rate to 4 ready workers
+[2023-01-13 20:06:48,981] load-test-1/INFO/locust.runners: All users spawned: {"ModelAdmin": 1, "ModelVisitor": 9999} (10000 total users)
+[2023-01-13 20:08:37,870] load-test-1/INFO/locust.main: Shutting down (exit code 1)
