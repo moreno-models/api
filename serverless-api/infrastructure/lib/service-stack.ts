@@ -37,6 +37,7 @@ export class ServiceStack extends cdk.Stack {
                 AWS_SECRETS_MANAGER_SECRET_ARN: props.auroraCluster.secret!.secretArn!,
                 AWS_SECRETS_MANAGER_SECRET_VALUE: props.auroraCluster.secret!.secretValue.unsafeUnwrap(),
                 BUCKET_NAME: props.photoBucket.bucketName,
+                JAVA_TOOL_OPTIONS: '-XX:+TieredCompilation -XX:TieredStopAtLevel=1'
             },
             vpc: props.vpc,
             vpcSubnets: props.vpc.selectSubnets({
