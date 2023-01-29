@@ -10,7 +10,6 @@ import { CfnDBCluster } from 'aws-cdk-lib/aws-rds';
 export class StorageStack extends cdk.Stack {
     public readonly dbCluster: rds.DatabaseCluster;
     public readonly vpc: ec2.Vpc;
-    public readonly proxy: rds.DatabaseProxy;
 
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
@@ -80,22 +79,6 @@ export class StorageStack extends cdk.Stack {
                 resources: ['*'],
             }),
         );
-        this.proxy = this.dbCluster.addProxy('AuroraProxy', {
-            vpc,
-            vpcSubnets: vpc.selectSubnets({
-                subnetType: ec2.SubnetType.PRIVATE_ISOLATED
-            }),
-            secrets: [this.dbCluster.secret!],
-            // iamAuth: true,
-            securityGroups: [dbSecurityGroup],
-            dbProxyName: 'morenomodels',
-        });
-        // add Lambda to the VPC!
-        // deply without iam auth?
-
-        // secret manager endpoint
-        // s3  endpoint
-        // IAM authentication
 
         Aspects.of(this.dbCluster).add({
             visit(node) {
@@ -107,8 +90,5 @@ export class StorageStack extends cdk.Stack {
                 }
             },
         });
-
-        // TODO: lambda must be in the VPC?
-        // TODO: lambda must be able to access the Aurora Port?
     }
 }
