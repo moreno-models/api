@@ -58,7 +58,7 @@ public class SecretsManagerCredentialProvider implements CredentialsProvider {
         } else {
             jsonValue = secretValue.get();
         }
-        LOG.info("Got secret value: " + jsonValue);
+//        LOG.info("Got secret value: " + jsonValue);
 
         try {
             SecretModel secret = objectMapper.readValue(jsonValue, SecretModel.class);
@@ -72,8 +72,39 @@ public class SecretsManagerCredentialProvider implements CredentialsProvider {
         }
     }
 
+    public SecretModel getCredentials() {
+        long startMillis = System.currentTimeMillis();
+        LOG.info("Getting credentials...");
 
-    private static class SecretModel {
+        String jsonValue;
+        if (secretValue.isEmpty()) {
+            if (secretArn.isEmpty()) {
+                throw new RuntimeException("Tried to use SecretsManager Credential Provider "
+                        + " without providing the secret ARN or secret value");
+            } else {
+                GetSecretValueResponse secretValueResponse = secretsManagerClient
+                        .getSecretValue(GetSecretValueRequest.builder()
+                                .secretId(secretArn.get())
+                                .build()
+                        );
+                jsonValue = secretValueResponse.secretString();
+            }
+        } else {
+            jsonValue = secretValue.get();
+        }
+        LOG.info("Got secret value: " + jsonValue);
+
+        try {
+            SecretModel secret = objectMapper.readValue(jsonValue, SecretModel.class);
+            LOG.info("Got credentials in: [" + (System.currentTimeMillis() - startMillis) + "])");
+            return secret;
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public static class SecretModel {
         private final String username;
         private final String password;
 
