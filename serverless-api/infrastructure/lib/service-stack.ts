@@ -16,7 +16,7 @@ export interface ServiceStackProps extends cdk.StackProps {
     photoBucket: s3.Bucket,
     auroraCluster: rds.DatabaseCluster,
     vpc: ec2.Vpc,
-    // proxy: rds.DatabaseProxy,
+    proxy: rds.DatabaseProxy,
 }
 
 export class ServiceStack extends cdk.Stack {
@@ -32,8 +32,8 @@ export class ServiceStack extends cdk.Stack {
             timeout: Duration.minutes(2),
             environment: {
                 QUARKUS_DATASOURCE_CREDENTIALS_PROVIDER: 'aws-secrets-manager',
-                // QUARKUS_DATASOURCE_JDBC_URL: `jdbc:postgresql://${props.proxy.endpoint}:5432/morenomodels`,
-                QUARKUS_DATASOURCE_JDBC_URL: `jdbc:postgresql://${props.auroraCluster.clusterEndpoint.hostname}:${props.auroraCluster.clusterEndpoint.port}/morenomodels`,
+                QUARKUS_DATASOURCE_JDBC_URL: `jdbc:postgresql://${props.proxy.endpoint}:5432/morenomodels`,
+                // QUARKUS_DATASOURCE_JDBC_URL: `jdbc:postgresql://${proeps.auroraCluster.clusterEndpoint.hostname}:${props.auroraCluster.clusterEndpoint.port}/morenomodels`,
                 AWS_SECRETS_MANAGER_SECRET_ARN: props.auroraCluster.secret!.secretArn!,
                 AWS_SECRETS_MANAGER_SECRET_VALUE: props.auroraCluster.secret!.secretValue.unsafeUnwrap(),
                 BUCKET_NAME: props.photoBucket.bucketName,

@@ -10,6 +10,7 @@ import { CfnDBCluster } from 'aws-cdk-lib/aws-rds';
 export class StorageStack extends cdk.Stack {
     public readonly dbCluster: rds.DatabaseCluster;
     public readonly vpc: ec2.Vpc;
+    public readonly proxy: rds.DatabaseProxy;
 
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
@@ -55,6 +56,20 @@ export class StorageStack extends cdk.Stack {
             clusterIdentifier: 'morenomodels',
             port: 5432,
         });
+
+        this.proxy = this.dbCluster.addProxy('AuroraProxy', {
+            vpc,
+            vpcSubnets: vpc.selectSubnets({
+                subnetType: ec2.SubnetType.PRIVATE_ISOLATED
+            }),
+            secrets: [this.dbCluster.secret!],
+            // iamAuth: true,
+            securityGroups: [dbSecurityGroup],
+            dbProxyName: 'morenomodels',
+            maxConnectionsPercent: 100,
+            maxIdleConnectionsPercent: 100,
+        });
+
         const s3Endpoint = vpc.addGatewayEndpoint('S3 Endpoint', {
             service: ec2.GatewayVpcEndpointAwsService.S3
         });
